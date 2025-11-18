@@ -1,0 +1,26 @@
+{
+	"id": "version3-qlite",
+	"name": "version3-qlite",
+	"shortname": "qlite",
+	"description": "Version 3 Q-Lite plugin for Companion",
+	"version": "2.6.0",
+	"license": "MIT",
+	"repository": "git+https://github.com/bitfocus/companion-module-generic-osc.git",
+	"bugs": "https://github.com/bitfocus/companion-module-generic-osc/issues",
+	"maintainers": [
+		{
+			"name": "William Viker",
+			"email": "william@bitfocus.io"
+		}
+	],
+	"legacyIds": ["direct_osc", "osc"],
+	"runtime": {
+		"type": "node22",
+		"api": "nodejs-ipc",
+		"apiVersion": "0.0.0",
+		"entrypoint": "../osc.js"
+	},
+	"manufacturer": "Version 3",
+	"products": ["Q-Lite"],
+	"keywords": ["Q-Lite"]
+}
