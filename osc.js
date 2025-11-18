@@ -275,7 +275,12 @@ class OSCInstance extends InstanceBase {
         callback: async (event) => {
           const path = await this.parseVariablesInString("/led/"+event.options.color+"/solid")
 
-          sendOscMessage(event.options.number, path, [])
+          sendOscMessage(event.options.number, path, [
+            {
+              type: 'i',
+              value: parseInt(event.options.number),
+            },
+          ])
         },
       },
       send_off: {
@@ -302,7 +307,12 @@ class OSCInstance extends InstanceBase {
         callback: async (event) => {
           const path = await this.parseVariablesInString("/led/"+event.options.color+"/off")
 
-          sendOscMessage(event.options.number, path, [])
+          sendOscMessage(event.options.number, path, [
+            {
+              type: 'i',
+              value: parseInt(event.options.number),
+            },
+          ])
         },
       },
       send_blink: {
@@ -329,7 +339,12 @@ class OSCInstance extends InstanceBase {
         callback: async (event) => {
           const path = await this.parseVariablesInString("/led/"+event.options.color+"/blink")
 
-          sendOscMessage(event.options.number, path, [])
+          sendOscMessage(event.options.number, path, [
+            {
+              type: 'i',
+              value: parseInt(event.options.number),
+            },
+          ])
         },
       },
       send_pulse: {
@@ -356,7 +371,12 @@ class OSCInstance extends InstanceBase {
         callback: async (event) => {
           const path = await this.parseVariablesInString("/led/"+event.options.color+"/pulse")
 
-          sendOscMessage(event.options.number, path, [])
+          sendOscMessage(event.options.number, path, [
+            {
+              type: 'i',
+              value: parseInt(event.options.number),
+            },
+          ])
         },
       },
 			send_blank: {
@@ -1053,10 +1073,6 @@ class OSCInstance extends InstanceBase {
       { variableId: 'latest_received_client', name: 'Latest OSC message received client (UDP only)' },
       { variableId: 'latest_received_port', name: 'Latest OSC message received port (UDP only)' },
       { variableId: 'latest_received_args', name: 'Latest OSC arguments received array.' },
-      { variableId: 'latest_sent_timestamp', name: 'Latest OSC message sent timestamp' },
-      { variableId: 'latest_sent_raw', name: 'Latest OSC message sent' },
-      { variableId: 'latest_sent_path', name: 'Latest OSC command sent' },
-      { variableId: 'latest_sent_args', name: 'Latest OSC arguments sent array.' },
     ]
 
     buttonDropdown.forEach((button) => {
