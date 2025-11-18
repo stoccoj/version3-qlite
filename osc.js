@@ -2,7 +2,8 @@ const { InstanceBase, Regex, runEntrypoint } = require('@companion-module/base')
 const UpgradeScripts = require('./upgrades')
 const { resolveHostname, isValidIPAddress, parseArguments, evaluateComparison, setupOSC } = require('./helpers.js')
 
-const buttonDropdown = [
+const qliteDropdown = [
+  { id: '0', label: 'All' },
   { id: '1', label: '1' },
   { id: '2', label: '2' }
 ]
@@ -22,7 +23,7 @@ class OSCInstance extends InstanceBase {
 
 		let validate = false
 
-    const host = this.config['button1-host']
+    const host = this.config['qlite1-host']
 		if (host) {
 			if (!isValidIPAddress(host)) {
 				await resolveHostname(this, host)
@@ -42,7 +43,7 @@ class OSCInstance extends InstanceBase {
 		}
 
 		if (this.config.listen) {
-			if (this.targetHost && (this.config['button1-targetPort'] || this.config.feedbackPort)) {
+			if (this.targetHost && (this.config['qlite1-targetPort'] || this.config.feedbackPort)) {
 				setupOSC(this)
 
 				if (validate) {
@@ -77,25 +78,25 @@ class OSCInstance extends InstanceBase {
 		}
 
 		let validate = false
-		if (!this.config['button1-host']) {
+		if (!this.config['qlite1-host']) {
 			this.updateStatus('bad_config')
 			this.log('warn', 'No host specified in config (null)')
-		} else if (!this.config['button1-targetPort']) {
+		} else if (!this.config['qlite1-targetPort']) {
 			this.updateStatus('bad_config')
 			this.log('warn', 'No targetPort specified in config (null)')
-		} else if (!isValidIPAddress(this.config['button1-host'])) {
-			await resolveHostname(this, this.config['button1-host'])
+		} else if (!isValidIPAddress(this.config['qlite1-host'])) {
+			await resolveHostname(this, this.config['qlite1-host'])
 				.then((ip) => {
 					this.targetHost = ip
 					validate = true
 				})
 				.catch((err) => {
-					this.log('error', `Unable to resolve hostname for ${this.config['button1-host']}: ${err.message}`)
+					this.log('error', `Unable to resolve hostname for ${this.config['qlite1-host']}: ${err.message}`)
 					this.updateStatus('bad_config')
 					validate = false
 				})
 		} else {
-			this.targetHost = this.config['button1-host']
+			this.targetHost = this.config['qlite1-host']
 			validate = true
 		}
 
@@ -127,13 +128,13 @@ class OSCInstance extends InstanceBase {
 		return [
       {
         type: 'static-text',
-        id: 'button1',
-        label: 'Button #1 LED Control',
+        id: 'qlite1',
+        label: 'Q-Lite #1 Control',
         width: 12,
       },
       {
         type: 'textinput',
-        id: 'button1-host',
+        id: 'qlite1-host',
         label: 'Target Hostname or IP',
         width: 8,
         regex: Regex.HOSTNAME,
@@ -141,7 +142,7 @@ class OSCInstance extends InstanceBase {
       },
       {
         type: 'textinput',
-        id: 'button1-targetPort',
+        id: 'qlite1-targetPort',
         label: 'Target Port',
         width: 4,
         regex: Regex.PORT,
@@ -150,13 +151,13 @@ class OSCInstance extends InstanceBase {
       },
       {
         type: 'static-text',
-        id: 'button2',
-        label: 'Button #2 LED Control',
+        id: 'qlite2',
+        label: 'Q-Lite #2 Control',
         width: 12,
       },
       {
         type: 'textinput',
-        id: 'button2-host',
+        id: 'qlite2-host',
         label: 'Target Hostname or IP',
         width: 8,
         regex: Regex.HOSTNAME,
@@ -164,7 +165,7 @@ class OSCInstance extends InstanceBase {
       },
       {
         type: 'textinput',
-        id: 'button2-targetPort',
+        id: 'qlite2-targetPort',
         label: 'Target Port',
         width: 4,
         regex: Regex.PORT,
@@ -173,8 +174,8 @@ class OSCInstance extends InstanceBase {
       },
       {
         type: 'static-text',
-        id: 'button-default',
-        label: 'Default Button LED Control',
+        id: 'qlite-default',
+        label: 'Default Q-Lite Control',
         width: 12,
       },
 			{
@@ -213,8 +214,8 @@ class OSCInstance extends InstanceBase {
 		const sendOscMessage = async (id, path, args, type) => {
 			const args_json = JSON.stringify(args)
 			const args_string = args.map((item) => item.value).join(' ')
-      const host = this.config[`button${id}-host`]
-      const port = this.config[`button${id}-targetPort`]
+      const host = this.config[`qlite${id}-host`]
+      const port = this.config[`qlite${id}-targetPort`]
 
 			this.log('debug', `Sending OSC [${host}:${port} ${path}`)
 			this.log('debug', `Sending Args ${args_json}`)
@@ -222,10 +223,10 @@ class OSCInstance extends InstanceBase {
 			if (this.config.protocol === 'udp') {
 				//Update Variables
 				this.setVariableValues({
-					[`button${id}_latest_sent_raw`]: `${path} ${args_string}`,
-					[`button${id}_latest_sent_path`]: path,
-					[`button${id}_latest_sent_args`]: args.length > 0 ? args.map((arg) => arg.value) : undefined,
-					[`button${id}_latest_sent_timestamp`]: Date.now(),
+					[`qlite${id}_latest_sent_raw`]: `${path} ${args_string}`,
+					[`qlite${id}_latest_sent_path`]: path,
+					[`qlite${id}_latest_sent_args`]: args.length > 0 ? args.map((arg) => arg.value) : undefined,
+					[`qlite${id}_latest_sent_timestamp`]: Date.now(),
 				})
 
 				this.oscSend(host, port, path, args)
@@ -248,7 +249,132 @@ class OSCInstance extends InstanceBase {
         callback: async (event) => {
           const path = await this.parseVariablesInString('/test')
 
+          const status = await this.getVariableValue('qlite1_status')
+          this.log('debug', `Current Status ${status}`)
           sendOscMessage('1', path, [])
+        },
+      },
+      ready: {
+        name: 'Set the LED ready (red)',
+        options: [
+          {
+            type: 'dropdown',
+            label: 'Q-Lite #',
+            choices: qliteDropdown,
+            id: 'number',
+            default: '1',
+          },
+        ],
+        callback: async (event) => {
+          const path = await this.parseVariablesInString("/led/red/solid")
+
+          if(event.options.number === '0') {
+            qliteDropdown.forEach((qlite) => {
+              const status = this.getVariableValue(`qlite${qlite.id}_status`)
+              if(status !== 'go') {
+                this.setVariableValues({
+                  [`qlite${qlite.id}_status`]: 'ready',
+                })
+                sendOscMessage(qlite.id, path, [
+                  {
+                    type: 'i',
+                    value: parseInt(qlite.id),
+                  },
+                ])
+              }
+            })
+          } else {
+            this.setVariableValues({
+              [`qlite${event.options.number}_status`]: 'ready',
+            })
+            sendOscMessage(event.options.number, path, [
+              {
+                type: 'i',
+                value: parseInt(event.options.number),
+              },
+            ])
+          }
+        },
+      },
+      go: {
+        name: 'Set the LED go (green)',
+        options: [
+          {
+            type: 'dropdown',
+            label: 'Q-Lite #',
+            choices: qliteDropdown,
+            id: 'number',
+            default: '1',
+          },
+        ],
+        callback: async (event) => {
+          const path = await this.parseVariablesInString("/led/green/solid")
+
+          if(event.options.number === '0') {
+            qliteDropdown.forEach((qlite) => {
+              const status = this.getVariableValue(`qlite${qlite.id}_status`)
+              if(status === 'ready') {
+                this.setVariableValues({
+                  [`qlite${qlite.id}_status`]: 'go',
+                })
+                sendOscMessage(qlite.id, path, [
+                  {
+                    type: 'i',
+                    value: parseInt(qlite.id),
+                  },
+                ])
+              }
+            })
+          } else {
+            this.setVariableValues({
+              [`qlite${event.options.number}_status`]: 'go',
+            })
+            sendOscMessage(event.options.number, path, [
+              {
+                type: 'i',
+                value: parseInt(event.options.number),
+              },
+            ])
+          }
+        },
+      },
+      clear: {
+        name: 'Set the LED clear (off)',
+        options: [
+          {
+            type: 'dropdown',
+            label: 'Q-Lite #',
+            choices: qliteDropdown,
+            id: 'number',
+            default: '1',
+          },
+        ],
+        callback: async (event) => {
+          const path = await this.parseVariablesInString("/led/clear")
+
+          if(event.options.number === '0') {
+            qliteDropdown.forEach((qlite) => {
+              this.setVariableValues({
+                [`qlite${qlite.id}_status`]: 'off',
+              })
+              sendOscMessage(qlite.id, path, [
+                {
+                  type: 'i',
+                  value: parseInt(qlite.id),
+                },
+              ])
+            })
+          } else {
+            this.setVariableValues({
+              [`qlite${event.options.number}_status`]: 'off',
+            })
+            sendOscMessage(event.options.number, path, [
+              {
+                type: 'i',
+                value: parseInt(event.options.number),
+              },
+            ])
+          }
         },
       },
       send_on: {
@@ -256,8 +382,8 @@ class OSCInstance extends InstanceBase {
         options: [
           {
             type: 'dropdown',
-            label: 'Button #',
-            choices: buttonDropdown,
+            label: 'Q-Lite #',
+            choices: qliteDropdown,
             id: 'number',
             default: '1',
           },
@@ -275,6 +401,9 @@ class OSCInstance extends InstanceBase {
         callback: async (event) => {
           const path = await this.parseVariablesInString("/led/"+event.options.color+"/solid")
 
+          this.setVariableValues({
+            [`qlite${event.options.number}_status`]: 'ready',
+          })
           sendOscMessage(event.options.number, path, [
             {
               type: 'i',
@@ -288,8 +417,8 @@ class OSCInstance extends InstanceBase {
         options: [
           {
             type: 'dropdown',
-            label: 'Button #',
-            choices: buttonDropdown,
+            label: 'Q-Lite #',
+            choices: qliteDropdown,
             id: 'number',
             default: '1',
           },
@@ -307,6 +436,9 @@ class OSCInstance extends InstanceBase {
         callback: async (event) => {
           const path = await this.parseVariablesInString("/led/"+event.options.color+"/off")
 
+          this.setVariableValues({
+            [`qlite${event.options.number}_status`]: 'off',
+          })
           sendOscMessage(event.options.number, path, [
             {
               type: 'i',
@@ -320,8 +452,8 @@ class OSCInstance extends InstanceBase {
         options: [
           {
             type: 'dropdown',
-            label: 'Button #',
-            choices: buttonDropdown,
+            label: 'Q-Lite #',
+            choices: qliteDropdown,
             id: 'number',
             default: '1',
           },
@@ -352,8 +484,8 @@ class OSCInstance extends InstanceBase {
         options: [
           {
             type: 'dropdown',
-            label: 'Button #',
-            choices: buttonDropdown,
+            label: 'Q-Lite #',
+            choices: qliteDropdown,
             id: 'number',
             default: '1',
           },
@@ -384,8 +516,8 @@ class OSCInstance extends InstanceBase {
 				options: [
           {
             type: 'dropdown',
-            label: 'Button #',
-            choices: buttonDropdown,
+            label: 'Q-Lite #',
+            choices: qliteDropdown,
             id: 'number',
             default: '1',
           },
@@ -408,8 +540,8 @@ class OSCInstance extends InstanceBase {
 				options: [
           {
             type: 'dropdown',
-            label: 'Button #',
-            choices: buttonDropdown,
+            label: 'Q-Lite #',
+            choices: qliteDropdown,
             id: 'number',
             default: '1',
           },
@@ -446,8 +578,8 @@ class OSCInstance extends InstanceBase {
 				options: [
           {
             type: 'dropdown',
-            label: 'Button #',
-            choices: buttonDropdown,
+            label: 'Q-Lite #',
+            choices: qliteDropdown,
             id: 'number',
             default: '1',
           },
@@ -484,8 +616,8 @@ class OSCInstance extends InstanceBase {
 				options: [
           {
             type: 'dropdown',
-            label: 'Button #',
-            choices: buttonDropdown,
+            label: 'Q-Lite #',
+            choices: qliteDropdown,
             id: 'number',
             default: '1',
           },
@@ -521,8 +653,8 @@ class OSCInstance extends InstanceBase {
 				options: [
           {
             type: 'dropdown',
-            label: 'Button #',
-            choices: buttonDropdown,
+            label: 'Q-Lite #',
+            choices: qliteDropdown,
             id: 'number',
             default: '1',
           },
@@ -612,8 +744,8 @@ class OSCInstance extends InstanceBase {
 				options: [
           {
             type: 'dropdown',
-            label: 'Button #',
-            choices: buttonDropdown,
+            label: 'Q-Lite #',
+            choices: qliteDropdown,
             id: 'number',
             default: '1',
           },
@@ -656,7 +788,7 @@ class OSCInstance extends InstanceBase {
 				options: [
           {
             type: 'dropdown',
-            label: 'Button #',
+            label: 'Q-Lite #',
             choices: [
               { id: '1', label: '1' },
               { id: '2', label: '2' }
@@ -1075,11 +1207,29 @@ class OSCInstance extends InstanceBase {
       { variableId: 'latest_received_args', name: 'Latest OSC arguments received array.' },
     ]
 
-    buttonDropdown.forEach((button) => {
-      variables.push({ variableId: 'button'+button.id+'_latest_sent_timestamp', name: 'Button '+button.label+' Latest OSC message timestamp' })
-      variables.push({ variableId: 'button'+button.id+'_latest_sent_raw', name: 'Button '+button.label+' Latest OSC message sent' })
-      variables.push({ variableId: 'button'+button.id+'_latest_sent_path', name: 'Button '+button.label+' Latest OSC command sent' })
-      variables.push({ variableId: 'button'+button.id+'_latest_sent_args', name: 'Button '+button.label+' Latest OSC arguments sent array' })
+    qliteDropdown.forEach((qlite) => {
+      if(qlite.id !== '0') {
+        variables.push({
+          variableId: 'qlite' + qlite.id + '_status',
+          name: 'Q-Lite #' + qlite.label + ' Status (ready, go)'
+        })
+        variables.push({
+          variableId: 'qlite' + qlite.id + '_latest_sent_timestamp',
+          name: 'Q-Lite #' + qlite.label + ' Latest OSC message timestamp'
+        })
+        variables.push({
+          variableId: 'qlite' + qlite.id + '_latest_sent_raw',
+          name: 'Q-Lite #' + qlite.label + ' Latest OSC message sent'
+        })
+        variables.push({
+          variableId: 'qlite' + qlite.id + '_latest_sent_path',
+          name: 'Q-Lite #' + qlite.label + ' Latest OSC command sent'
+        })
+        variables.push({
+          variableId: 'qlite' + qlite.id + '_latest_sent_args',
+          name: 'Q-Lite #' + qlite.label + ' Latest OSC arguments sent array'
+        })
+      }
     })
 
 		this.setVariableDefinitions(variables)
