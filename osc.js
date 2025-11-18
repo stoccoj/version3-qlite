@@ -266,7 +266,7 @@ class OSCInstance extends InstanceBase {
           },
         ],
         callback: async (event) => {
-          const path = await this.parseVariablesInString("/led/red/solid")
+          const path = await this.parseVariablesInString("/led/red/blink")
 
           if(event.options.number === '0') {
             qliteDropdown.forEach((qlite) => {
@@ -313,7 +313,7 @@ class OSCInstance extends InstanceBase {
           if(event.options.number === '0') {
             qliteDropdown.forEach((qlite) => {
               const status = this.getVariableValue(`qlite${qlite.id}_status`)
-              if(status === 'ready') {
+              if(status === 'ready' || status === 'ready-confirmed') {
                 this.setVariableValues({
                   [`qlite${qlite.id}_status`]: 'go',
                 })
