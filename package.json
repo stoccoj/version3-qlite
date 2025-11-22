@@ -1,7 +1,7 @@
 {
 	"name": "version3-qlite",
 	"version": "0.0.1",
-	"main": "osc.js",
+	"main": "index.js",
 	"scripts": {
 		"test": "echo \"Error: no test specified\" && exit 1",
 		"format": "prettier -w ."

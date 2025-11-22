@@ -54,17 +54,17 @@ async function onDataHandler(root, data) {
 
 				root.log('debug', `OSC message: ${packet.address}, args: ${args_json}`)
 
-        const qlite_number = packet.args[0]?.value
-        if(packet.address === '/button/single-click' && qlite_number) {
-          root.log('debug', `QLite #${qlite_number}`)
-          const status = root.getVariableValue(`qlite${qlite_number}_status`)
-          if (status === 'ready') {
-            const path = await root.parseVariablesInString("/led/red/solid")
-            root.setVariableValues({
-              [`qlite${qlite_number}_status`]: 'ready-confirmed',
-            })
-          }
-        }
+				const qlite_number = packet.args[0]?.value
+				if (packet.address === '/button/single-click' && qlite_number) {
+					root.log('debug', `QLite #${qlite_number}`)
+					const status = root.getVariableValue(`qlite${qlite_number}_status`)
+					if (status === 'ready') {
+						const path = await root.parseVariablesInString('/led/red/solid')
+						root.setVariableValues({
+							[`qlite${qlite_number}_status`]: 'ready-confirmed',
+						})
+					}
+				}
 
 				await root.checkFeedbacks()
 
