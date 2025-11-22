@@ -26,7 +26,8 @@ module.exports = {
         const qliteNumber = feedback.options.number;
 
         const status = await context.parseVariablesInString(`$(qlite:qlite${qliteNumber}_status)`)
-        const isReady = status === 'ready'
+        const hold_status = await context.parseVariablesInString(`$(qlite:qlite${qliteNumber}_hold)`)
+        const isReady = status === 'ready' && hold_status !== 'yes'
 
         /** Can be used to dynamically set colors based on config
         const readyColor = {
@@ -60,6 +61,7 @@ module.exports = {
       callback: async (feedback, context) => {
         const qliteNumber = feedback.options.number;
         const status = await context.parseVariablesInString(`$(qlite:qlite${qliteNumber}_status)`)
+        const hold_status = await context.parseVariablesInString(`$(qlite:qlite${qliteNumber}_hold)`)
 
         /** Can be used to dynamically set colors based on config
         const readyColor = {
@@ -67,7 +69,7 @@ module.exports = {
           bgcolor: self.config[`qlite${qliteNumber}-readyBgColor`],
         }
         **/
-        return status === 'ready-confirmed' ? ready : off
+        return status === 'ready-confirmed' && hold_status !== 'yes' ? ready : off
       }
     }
 
@@ -88,6 +90,7 @@ module.exports = {
       callback: async (feedback, context) => {
         const qliteNumber = feedback.options.number;
         const status = await context.parseVariablesInString(`$(qlite:qlite${qliteNumber}_status)`)
+        const hold_status = await context.parseVariablesInString(`$(qlite:qlite${qliteNumber}_hold)`)
 
         /** Can be used to dynamically set colors based on config
         const goColor = {
@@ -96,7 +99,7 @@ module.exports = {
         }
         **/
 
-        return status === 'go' ? go : off
+        return status === 'go' && hold_status !== 'yes' ? go : off
       }
     }
 

@@ -1,5 +1,15 @@
 module.exports = {
 
+  paths: {
+    ready_blink: '/led/red/blink',
+    ready_solid: '/led/red/solid',
+    go_blink: '/led/green/blink',
+    go_solid: '/led/green/solid',
+    hold_blink: '/led/hold/blink',
+    hold_solid: '/led/hold/solid',
+    clear: '/led/off',
+  },
+
   sendOscMessage: async function(id, path, args, type) {
     let self = this; // required to have reference to outer `this`
 

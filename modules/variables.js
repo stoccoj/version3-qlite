@@ -18,6 +18,10 @@ module.exports = {
           name: 'Q-Lite #' + qlite.label + ' Status (ready, go)'
         })
         variables.push({
+          variableId: 'qlite' + qlite.id + '_hold',
+          name: 'Q-Lite #' + qlite.label + ' Hold Status (yes, no)'
+        })
+        variables.push({
           variableId: 'qlite' + qlite.id + '_latest_sent_timestamp',
           name: 'Q-Lite #' + qlite.label + ' Latest OSC message timestamp'
         })

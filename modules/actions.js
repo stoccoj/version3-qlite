@@ -1,8 +1,11 @@
+const paths = require('./osc').paths
+
 module.exports = {
 
   initActions: function() {
     let self = this; // required to have reference to outer `this`
     let actions = {};
+    const actionButtons = self.buttons.filter((btn) => btn.id !== '0');
 
     actions.ready = {
       name: 'Set the Q-Lite state to Ready',
@@ -16,14 +19,11 @@ module.exports = {
         },
       ],
       callback: async (event) => {
-        const blink = await self.parseVariablesInString("/led/red/blink")
-        const solid = await self.parseVariablesInString("/led/red/solid")
-
         if(event.options.number === '0') {
-          self.buttons.forEach((qlite) => {
+          actionButtons.forEach((qlite) => {
             let rc = self.config[`qlite${qlite.id}-requestConfirmation`]
             self.log('debug', `Q-Lite #${qlite.id} Request Confirmation is set to ${rc}`)
-            let path = rc ? blink : solid
+            let path = rc ? paths.ready_blink : paths.ready_solid
             let status = rc ? 'ready' : 'ready-confirmed'
 
             const current_status = self.getVariableValue(`qlite${qlite.id}_status`)
@@ -42,7 +42,7 @@ module.exports = {
         } else {
           let rc = self.config[`qlite${event.options.number}-requestConfirmation`]
           self.log('debug', `Q-Lite #${event.options.number} Request Confirmation is set to ${rc}`)
-          let path = rc ? blink : solid
+          let path = rc ? paths.ready_blink : paths.ready_solid
           let status = rc ? 'ready' : 'ready-confirmed'
 
           self.setVariableValues({
@@ -70,16 +70,14 @@ module.exports = {
         },
       ],
       callback: async (event) => {
-        const path = await self.parseVariablesInString("/led/green/solid")
-
         if(event.options.number === '0') {
-          self.buttons.forEach((qlite) => {
+          actionButtons.forEach((qlite) => {
             const status = self.getVariableValue(`qlite${qlite.id}_status`)
             if(status === 'ready' || status === 'ready-confirmed') {
               self.setVariableValues({
                 [`qlite${qlite.id}_status`]: 'go',
               })
-              self.sendOscMessage(qlite.id, path, [
+              self.sendOscMessage(qlite.id, paths.go_solid, [
                 {
                   type: 'i',
                   value: parseInt(qlite.id),
@@ -113,14 +111,12 @@ module.exports = {
         },
       ],
       callback: async (event) => {
-        const path = await self.parseVariablesInString("/led/clear")
-
         if(event.options.number === '0') {
-          self.buttons.forEach((qlite) => {
+          actionButtons.forEach((qlite) => {
             self.setVariableValues({
               [`qlite${qlite.id}_status`]: 'off',
             })
-            self.sendOscMessage(qlite.id, path, [
+            self.sendOscMessage(qlite.id, paths.clear, [
               {
                 type: 'i',
                 value: parseInt(qlite.id),
@@ -131,7 +127,7 @@ module.exports = {
           self.setVariableValues({
             [`qlite${event.options.number}_status`]: 'off',
           })
-          await self.sendOscMessage(event.options.number, path, [
+          await self.sendOscMessage(event.options.number, paths.clear, [
             {
               type: 'i',
               value: parseInt(event.options.number),
