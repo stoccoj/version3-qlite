@@ -1,13 +1,18 @@
 module.exports = {
 
   paths: {
-    ready_blink: '/led/red/blink',
-    ready_solid: '/led/red/solid',
-    go_blink: '/led/green/blink',
-    go_solid: '/led/green/solid',
     hold_blink: '/led/hold/blink',
     hold_solid: '/led/hold/solid',
+    ready_blink: '/led/ready/blink',
+    ready_solid: '/led/ready/solid',
+    go_blink: '/led/go/blink',
+    go_solid: '/led/go/solid',
     clear: '/led/off',
+  },
+
+  responses: {
+    hold: '/button/hold',
+    ready_confirmed: '/button/ready-confirmed',
   },
 
   sendOscMessage: async function(id, path, args, type) {

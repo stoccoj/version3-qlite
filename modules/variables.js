@@ -9,6 +9,7 @@ module.exports = {
       { variableId: 'latest_received_client', name: 'Latest OSC message received client (UDP only)' },
       { variableId: 'latest_received_port', name: 'Latest OSC message received port (UDP only)' },
       { variableId: 'latest_received_args', name: 'Latest OSC arguments received array.' },
+      { variableId: 'latest_received_qlite_number', name: 'Latest OSC message received from Q-Lite' },
     ]
 
     self.buttons.forEach((qlite) => {

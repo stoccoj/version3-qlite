@@ -89,7 +89,7 @@ module.exports = {
           self.setVariableValues({
             [`qlite${event.options.number}_status`]: 'go',
           })
-          await self.sendOscMessage(event.options.number, path, [
+          await self.sendOscMessage(event.options.number, paths.go_solid, [
             {
               type: 'i',
               value: parseInt(event.options.number),

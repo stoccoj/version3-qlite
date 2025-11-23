@@ -28,7 +28,6 @@ module.exports = {
         ],
         feedbacks: [
           { feedbackId: 'ready', options: { number: String(i) } },
-          { feedbackId: 'ready_confirmed', options: { number: String(i) } },
         ]
       });
 
