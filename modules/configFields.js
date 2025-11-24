@@ -34,7 +34,7 @@ module.exports = {
         type: 'textinput',
         id: `qlite${i}-targetPort`,
         label: 'Port',
-        width: 3,
+        width: 2,
         regex: Regex.PORT | '',
         default: '8000',
         required: requiredField,
@@ -42,10 +42,19 @@ module.exports = {
 
       fields.push({
         type: 'checkbox',
-        id: `qlite${i}-requestConfirmation`,
-        label: 'Request Confirmation',
+        id: `qlite${i}-requestReadyConfirmation`,
+        label: 'Confirm Ready',
         tooltip: `Request confirmation from the remote station when setting the Q-Lite to the Ready state.`,
-        width: 3,
+        width: 2,
+        default: false,
+      })
+
+      fields.push({
+        type: 'checkbox',
+        id: `qlite${i}-requestGoConfirmation`,
+        label: 'Confirm Go',
+        tooltip: `Request confirmation from the remote station when setting the Q-Lite to the Go state.`,
+        width: 2,
         default: false,
       })
 

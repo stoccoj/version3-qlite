@@ -46,6 +46,16 @@ async function handleButtonResponse(root, path, qlite_number) {
       })
       await root.sendOscMessage(qlite_number, paths.ready_solid)
     }
+  } else if(path === '/button/go-confirmed' && qlite_number) {
+    const status = await root.getVariableValue(`qlite${qlite_number}_status`)
+    root.log('debug', `Received go-confirmed from Q-Lite #${qlite_number}, current status: ${status}`)
+    if (status === 'go') {
+      root.log('debug', 'confirm the go state for Q-Lite #' + qlite_number)
+      root.setVariableValues({
+        [`qlite${qlite_number}_status`]: 'go-confirmed',
+      })
+      await root.sendOscMessage(qlite_number, paths.go_solid)
+    }
   } else if (path === '/button/hold' && qlite_number) {
     const hold_status = await root.getVariableValue(`qlite${qlite_number}_hold`)
     if (hold_status === 'off') {

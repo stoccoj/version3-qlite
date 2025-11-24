@@ -71,6 +71,8 @@ module.exports = {
 
         const status = await context.parseVariablesInString(`$(qlite:qlite${qliteNumber}_status)`)
         const hold_status = await context.parseVariablesInString(`$(qlite:qlite${qliteNumber}_hold)`)
+        const isGo = status === 'go' && hold_status !== 'on'
+        const isGoConfirmed = status === 'go-confirmed' && hold_status !== 'on'
 
         /** Can be used to dynamically set colors based on config
         const goColor = {
@@ -79,7 +81,14 @@ module.exports = {
         }
         **/
 
-        return status === 'go' && hold_status !== 'on' ? style.go : style.off
+        if(isGo) {
+          return self.boolValue ? style.go : style.off
+        }
+        if(isGoConfirmed) {
+          return style.go
+        }
+
+        return style.off
       }
     }
 

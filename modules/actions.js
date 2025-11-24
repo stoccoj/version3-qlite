@@ -1,7 +1,7 @@
 const paths = require('./osc').paths
 
 const handle_ready = async function(root, qlite_number) {
-  const rc = root.config[`qlite${qlite_number}-requestConfirmation`]
+  const rc = root.config[`qlite${qlite_number}-requestReadyConfirmation`]
   root.log('debug', `Q-Lite #${qlite_number} Request Confirmation is set to ${rc}`)
   let path = rc ? paths.ready_blink : paths.ready_solid
   let status = rc ? 'ready' : 'ready-confirmed'
@@ -13,10 +13,15 @@ const handle_ready = async function(root, qlite_number) {
 }
 
 const handle_go = async function(root, qlite_number) {
+  const rc = root.config[`qlite${qlite_number}-requestGoConfirmation`]
+  root.log('debug', `Q-Lite #${qlite_number} Request Confirmation is set to ${rc}`)
+  let path = rc ? paths.go_blink : paths.go_solid
+  let status = rc ? 'go' : 'go-confirmed'
+
   root.setVariableValues({
-    [`qlite${qlite_number}_status`]: 'go',
+    [`qlite${qlite_number}_status`]: status,
   })
-  await root.sendOscMessage(qlite_number, paths.go_solid)
+  await root.sendOscMessage(qlite_number, path)
 
   let autoClear = root.config[`autoClear`]
   root.log('debug', `Auto Clear is set to ${autoClear}`)
@@ -26,7 +31,7 @@ const handle_go = async function(root, qlite_number) {
     setTimeout(() => {
       let qlite_status = root.getVariableValue(`qlite${qlite_number}_status`)
       root.log('debug', `Auto Clear check for Q-Lite #${qlite_number}, status is ${qlite_status}`)
-      if (qlite_status === 'go') {
+      if (qlite_status === 'go' || qlite_status === 'go-confirmed') {
         handle_clear(root, qlite_number)
       }
     }, autoClearTime * 1000)
