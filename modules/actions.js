@@ -17,6 +17,20 @@ const handle_go = async function(root, qlite_number) {
     [`qlite${qlite_number}_status`]: 'go',
   })
   await root.sendOscMessage(qlite_number, paths.go_solid)
+
+  let autoClear = root.config[`autoClear`]
+  root.log('debug', `Auto Clear is set to ${autoClear}`)
+  if (autoClear === true || autoClear === 'true') {
+    let autoClearTime = parseInt(root.config[`autoClearTime`])
+    root.log('debug', `Auto Clear is enabled, will clear Q-Lite #${qlite_number} in ${autoClearTime} seconds if still in 'go' state`)
+    setTimeout(() => {
+      let qlite_status = root.getVariableValue(`qlite${qlite_number}_status`)
+      root.log('debug', `Auto Clear check for Q-Lite #${qlite_number}, status is ${qlite_status}`)
+      if (qlite_status === 'go') {
+        handle_clear(root, qlite_number)
+      }
+    }, autoClearTime * 1000)
+  }
 }
 
 const handle_clear = async function(root, qlite_number) {

@@ -1,4 +1,4 @@
-const { InstanceBase, Regex, runEntrypoint, InstanceStatus} = require('@companion-module/base')
+const { InstanceBase, runEntrypoint, InstanceStatus} = require('@companion-module/base')
 const UpgradeScripts = require('./modules/upgrades')
 const configFields = require('./modules/configFields')
 const osc = require('./modules/osc')
@@ -9,7 +9,6 @@ const variables = require('./modules/variables')
 const presets = require('./modules/presets')
 const ping = require('./modules/ping')
 const { resolveHostname, isValidIPAddress, setupOSC } = require('./helpers.js')
-const {startPingMonitor} = require("./modules/ping");
 
 class OSCInstance extends InstanceBase {
   constructor(internal) {
@@ -137,7 +136,7 @@ class OSCInstance extends InstanceBase {
         })
       }
     } else {
-      this.updateStatus('ok')
+      this.updateStatus(InstanceStatus.Ok)
     }
   }
 

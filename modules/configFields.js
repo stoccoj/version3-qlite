@@ -153,6 +153,26 @@ module.exports = {
 
     fields.push({
       type: 'checkbox',
+      id: 'autoClear',
+      width: 6,
+      label: 'Auto Clear',
+      tooltip: 'Indicates whether or not a go state will automatically clear after a period of time.',
+      default: false,
+    })
+
+    fields.push({
+      type: 'number',
+      id: 'autoClearTime',
+      width: 6,
+      label: 'Auto Clear Time (seconds)',
+      min: 5,
+      max: 60,
+      tooltip: 'The amount of time in seconds before the go state will automatically clear.',
+      default: 15,
+    })
+
+    fields.push({
+      type: 'checkbox',
       id: 'specifyCustomOnOff',
       width: 6,
       label: 'Specify Custom On/Off Times',
