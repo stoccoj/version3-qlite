@@ -1,6 +1,6 @@
 const { Regex, combineRgb } = require("@companion-module/base");
 const { evaluateComparison, parseArguments } = require("../helpers");
-const { off, ready, go } = require("./styles");
+const style = require("./styles");
 
 module.exports = {
   initFeedbacks() {
@@ -12,7 +12,7 @@ module.exports = {
       type: 'advanced',
       name: 'Q-Lite state is Ready',
       description: 'Indicates if the Q-Lite state is set to Ready',
-      defaultStyle: ready,
+      defaultStyle: style.ready,
       options: [
         {
           type: 'dropdown',
@@ -27,8 +27,9 @@ module.exports = {
 
         const status = await context.parseVariablesInString(`$(qlite:qlite${qliteNumber}_status)`)
         const hold_status = await context.parseVariablesInString(`$(qlite:qlite${qliteNumber}_hold)`)
-        const isReady = status === 'ready' && hold_status !== 'yes'
-        const isReadyConfirmed = status === 'ready-confirmed' && hold_status !== 'yes'
+        const online = await context.parseVariablesInString(`$(qlite:qlite${qliteNumber}_online)`)
+        const isReady = status === 'ready' && hold_status !== 'on'
+        const isReadyConfirmed = status === 'ready-confirmed' && hold_status !== 'on'
 
         /** Can be used to dynamically set colors based on config
         const readyColor = {
@@ -37,14 +38,17 @@ module.exports = {
         }
         **/
 
+        if (online === "false") {
+          return style.hold
+        }
         if(isReady) {
-          return self.boolValue ? ready : off
+          return self.boolValue ? style.ready : style.off
         }
         if(isReadyConfirmed) {
-          return ready
+          return style.ready
         }
 
-        return off
+        return style.off
       }
     }
 
@@ -52,7 +56,7 @@ module.exports = {
       type: 'advanced',
       name: 'Use for Q-Lite Go button',
       description: 'Turns button green when Q-Lite is set to Go',
-      defaultStyle: go,
+      defaultStyle: style.go,
       options: [
         {
           type: 'dropdown',
@@ -75,7 +79,42 @@ module.exports = {
         }
         **/
 
-        return status === 'go' && hold_status !== 'yes' ? go : off
+        return status === 'go' && hold_status !== 'on' ? style.go : style.off
+      }
+    }
+
+    feedbacks.hold = {
+      type: 'advanced',
+      name: 'Use for Q-Lite Hold button',
+      description: 'Turns button red when Q-Lite is set to Hold',
+      defaultStyle: style.off,
+      options: [
+        {
+          type: 'dropdown',
+          label: 'Q-Lite #',
+          choices: feedbackButtons,
+          id: 'number',
+          default: '1',
+        },
+      ],
+      callback: async (feedback, context) => {
+        const qliteNumber = feedback.options.number;
+
+        const hold_status = await context.parseVariablesInString(`$(qlite:qlite${qliteNumber}_hold)`)
+
+        /** Can be used to dynamically set colors based on config
+         const goColor = {
+         color: self.config[`qlite${qliteNumber}-goTxtColor`],
+         bgcolor: self.config[`qlite${qliteNumber}-goBgColor`],
+         }
+         **/
+
+        const isBlink = hold_status === 'blink'
+        if(isBlink) {
+          return self.boolValue ? style.hold : style.off
+        }
+
+        return hold_status === 'on' ? style.hold : style.off
       }
     }
 

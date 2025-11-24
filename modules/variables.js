@@ -15,12 +15,16 @@ module.exports = {
     self.buttons.forEach((qlite) => {
       if(qlite.id !== '0') {
         variables.push({
+          variableId: 'qlite' + qlite.id + '_online',
+          name: 'Q-Lite #' + qlite.label + ' Online Status (true, false)'
+        })
+        variables.push({
           variableId: 'qlite' + qlite.id + '_status',
           name: 'Q-Lite #' + qlite.label + ' Status (ready, go)'
         })
         variables.push({
           variableId: 'qlite' + qlite.id + '_hold',
-          name: 'Q-Lite #' + qlite.label + ' Hold Status (yes, no)'
+          name: 'Q-Lite #' + qlite.label + ' Hold Status (on, off)'
         })
         variables.push({
           variableId: 'qlite' + qlite.id + '_latest_sent_timestamp',

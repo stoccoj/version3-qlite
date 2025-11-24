@@ -3,11 +3,12 @@ module.exports = {
   paths: {
     hold_blink: '/led/hold/blink',
     hold_solid: '/led/hold/solid',
+    hold_off: '/led/hold/off',
     ready_blink: '/led/ready/blink',
     ready_solid: '/led/ready/solid',
     go_blink: '/led/go/blink',
     go_solid: '/led/go/solid',
-    clear: '/led/off',
+    clear: '/led/clear',
   },
 
   responses: {
@@ -15,8 +16,17 @@ module.exports = {
     ready_confirmed: '/button/ready-confirmed',
   },
 
-  sendOscMessage: async function(id, path, args, type) {
+  sendOscMessage: async function(id, path, args = undefined) {
     let self = this; // required to have reference to outer `this`
+
+    if(args === undefined) {
+      args = [
+        {
+          type: 'i',
+          value: parseInt(id),
+        }
+      ]
+    }
 
     const args_json = JSON.stringify(args)
     const args_string = args.map((item) => item.value).join(' ')

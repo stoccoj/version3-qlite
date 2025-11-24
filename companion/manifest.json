@@ -3,14 +3,14 @@
 	"name": "version3-qlite",
 	"shortname": "qlite",
 	"description": "Version 3 Q-Lite plugin for Companion",
-	"version": "2.6.0",
+	"version": "0.0.1",
 	"license": "MIT",
-	"repository": "git+https://github.com/bitfocus/companion-module-generic-osc.git",
-	"bugs": "https://github.com/bitfocus/companion-module-generic-osc/issues",
+	"repository": "git+https://github.com/stoccoj/version3-qlite.git",
+	"bugs": "https://github.com/stoccoj/version3-qlite/issues",
 	"maintainers": [
 		{
-			"name": "William Viker",
-			"email": "william@bitfocus.io"
+			"name": "James Stocco, III",
+			"email": "james.stocco@version3llc.com"
 		}
 	],
 	"legacyIds": ["direct_osc", "osc"],
@@ -22,5 +22,5 @@
 	},
 	"manufacturer": "Version 3",
 	"products": ["Q-Lite"],
-	"keywords": ["Q-Lite"]
+	"keywords": ["Q-Lite", "Version 3", "OSC", "Light", "LED", "Cue"]
 }

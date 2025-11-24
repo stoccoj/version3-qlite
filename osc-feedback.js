@@ -44,12 +44,16 @@ async function handleButtonResponse(root, path, qlite_number) {
       root.setVariableValues({
         [`qlite${qlite_number}_status`]: 'ready-confirmed',
       })
-      await root.sendOscMessage(qlite_number, paths.ready_solid, [
-        {
-          type: 'i',
-          value: parseInt(qlite_number),
-        },
-      ])
+      await root.sendOscMessage(qlite_number, paths.ready_solid)
+    }
+  } else if (path === '/button/hold' && qlite_number) {
+    const hold_status = await root.getVariableValue(`qlite${qlite_number}_hold`)
+    if (hold_status === 'off') {
+      root.log('debug', 'set the hold state for Q-Lite #' + qlite_number)
+      root.setVariableValues({
+        [`qlite${qlite_number}_hold`]: 'blink',
+      })
+      await root.sendOscMessage(qlite_number, paths.hold_solid)
     }
   }
 }

@@ -1,4 +1,4 @@
-const { InstanceBase, Regex, runEntrypoint } = require('@companion-module/base')
+const { InstanceBase, Regex, runEntrypoint, InstanceStatus} = require('@companion-module/base')
 const UpgradeScripts = require('./modules/upgrades')
 const configFields = require('./modules/configFields')
 const osc = require('./modules/osc')
@@ -7,7 +7,9 @@ const actions = require('./modules/actions')
 const feedbacks = require('./modules/feedbacks')
 const variables = require('./modules/variables')
 const presets = require('./modules/presets')
+const ping = require('./modules/ping')
 const { resolveHostname, isValidIPAddress, setupOSC } = require('./helpers.js')
+const {startPingMonitor} = require("./modules/ping");
 
 class OSCInstance extends InstanceBase {
   constructor(internal) {
@@ -28,6 +30,7 @@ class OSCInstance extends InstanceBase {
       ...feedbacks,
       ...variables,
       ...presets,
+      ...ping,
     })
   }
 
@@ -36,52 +39,8 @@ class OSCInstance extends InstanceBase {
     this.config = config
     this.targetHost
     this.client
-
-    const count = Number(config?.numberOfQlites ?? 1)
-    for (let i = 1; i <= count; i++) {
-      this.buttons.push({ id: String(i), label: String(i) })
-    }
-
     this.onDataReceived = {}
-
-    let validate = false
-
-    const host = this.config['qlite1-host']
-    if (host) {
-      if (!isValidIPAddress(host)) {
-        await resolveHostname(this, host)
-            .then((ip) => {
-              this.targetHost = ip
-              validate = true
-            })
-            .catch((err) => {
-              this.log('error', `Unable to resolve hostname for ${host}: ${err.message}`)
-              this.updateStatus('bad_config')
-              validate = false
-            })
-      } else {
-        this.targetHost = host
-        validate = true
-      }
-    }
-
-    if (this.config.listen) {
-      if (this.targetHost && (this.config['qlite1-targetPort'] || this.config.feedbackPort)) {
-        setupOSC(this)
-
-        if (validate) {
-          this.setupListeners()
-        }
-      }
-    } else {
-      this.updateStatus('ok')
-    }
-
-    this.initActions()
-    this.initFeedbacks()
-    this.initVariables()
-    this.initPresets()
-    this.startInterval()
+    this.configUpdated(config)
   }
   // When module gets deleted
   async destroy() {
@@ -92,6 +51,7 @@ class OSCInstance extends InstanceBase {
 
   async configUpdated(config) {
     this.config = config
+    let validate = false
 
     const count = Number(config?.numberOfQlites ?? 1)
     for (let i = 1; i <= count; i++) {
@@ -109,12 +69,11 @@ class OSCInstance extends InstanceBase {
           })
     }
 
-    let validate = false
     if (!this.config['qlite1-host']) {
-      this.updateStatus('bad_config')
+      this.updateStatus(InstanceStatus.BadConfig)
       this.log('warn', 'No host specified in config (null)')
     } else if (!this.config['qlite1-targetPort']) {
-      this.updateStatus('bad_config')
+      this.updateStatus(InstanceStatus.BadConfig)
       this.log('warn', 'No targetPort specified in config (null)')
     } else if (!isValidIPAddress(this.config['qlite1-host'])) {
       await resolveHostname(this, this.config['qlite1-host'])
@@ -124,7 +83,7 @@ class OSCInstance extends InstanceBase {
           })
           .catch((err) => {
             this.log('error', `Unable to resolve hostname for ${this.config['qlite1-host']}: ${err.message}`)
-            this.updateStatus('bad_config')
+            this.updateStatus(InstanceStatus.BadConfig)
             validate = false
           })
     } else {
@@ -136,12 +95,36 @@ class OSCInstance extends InstanceBase {
       return
     }
 
-    setupOSC(this)
+    if (this.config.listen) {
+      if (this.targetHost && (this.config['qlite1-targetPort'] || this.config.feedbackPort)) {
+        setupOSC(this)
 
-    this.setupListeners()
+        if (validate) {
+          await this.setupListeners()
+        }
+      }
+    } else {
+      this.updateStatus(InstanceStatus.Ok)
+    }
+
+    this.initActions();
     this.initFeedbacks();
+    this.initVariables();
+
+    // Default values shown immediately after the module loads
+    for (let i = 1; i <= count; i++) {
+      this.setVariableValues({
+        [`qlite${i}_hold`]: 'off',
+        [`qlite${i}_online`]: false,
+      })
+      await this.sendOscMessage(i, '/online')
+    }
+
     this.initPresets();
     this.startInterval();
+    for (let i = 1; i <= count; i++) {
+      this.startPingMonitor(i, this.config[`qlite${i}-host`])
+    }
   }
 
   async setupListeners() {

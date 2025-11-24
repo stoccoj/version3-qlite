@@ -71,6 +71,28 @@ module.exports = {
           }
         ]
       });
+
+      presets.push({
+        category: `Q-Lite #${i} Buttons`,
+        name: `Q-Lite #${i} Hold`,
+        type: 'button',
+        style: {
+          text: `Hold\n#${i}`,
+          size: '18',
+          color: off.color,
+          bgcolor: off.bgcolor,
+        },
+        steps: [
+          {
+            down: [
+              { actionId: 'hold', options: { number: String(i) } },
+            ]
+          }
+        ],
+        feedbacks: [
+          { feedbackId: 'hold', options: { number: String(i) } }
+        ]
+      });
     }
 
     presets.push({
@@ -125,6 +147,25 @@ module.exports = {
         {
           down: [
             { actionId: 'clear', options: { number: '0' } },
+          ]
+        }
+      ]
+    });
+
+    presets.push({
+      category: `Q-Lite General Buttons`,
+      name: `Q-Lite Hold All`,
+      type: 'button',
+      style: {
+        text: `Hold\nAll`,
+        size: '18',
+        color: off.color,
+        bgcolor: off.bgcolor,
+      },
+      steps: [
+        {
+          down: [
+            { actionId: 'hold', options: { number: '0' } },
           ]
         }
       ]
