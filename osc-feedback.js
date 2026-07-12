@@ -1,6 +1,6 @@
 const osc = require('osc')
-const path = require("node:path");
-const {paths} = require("./modules/osc");
+const path = require('node:path')
+const { paths } = require('./modules/osc')
 
 function getCompleteMessageLength(buffer) {
 	try {
@@ -36,39 +36,39 @@ async function parseOscMessages(root, buffer) {
 }
 
 async function handleButtonResponse(root, path, qlite_number) {
-  if (path === '/button/ready-confirmed' && qlite_number) {
-    const status = await root.getVariableValue(`qlite${qlite_number}_status`)
-    root.log('debug', `Received ready-confirmed from Q-Lite #${qlite_number}, current status: ${status}`)
-    if (status === 'ready') {
-      root.log('debug', 'confirm the ready state for Q-Lite #' + qlite_number)
-      root.setVariableValues({
-        [`qlite${qlite_number}_status`]: 'ready-confirmed',
-      })
-      await root.sendOscMessage(qlite_number, paths.ready_solid)
-    }
-  } else if(path === '/button/go-confirmed' && qlite_number) {
-    const status = await root.getVariableValue(`qlite${qlite_number}_status`)
-    root.log('debug', `Received go-confirmed from Q-Lite #${qlite_number}, current status: ${status}`)
-    if (status === 'go') {
-      root.log('debug', 'confirm the go state for Q-Lite #' + qlite_number)
-      root.setVariableValues({
-        [`qlite${qlite_number}_status`]: 'go-confirmed',
-      })
-      await root.sendOscMessage(qlite_number, paths.go_solid)
-    }
-  } else if (path === '/button/hold' && qlite_number) {
-    const hold_status = await root.getVariableValue(`qlite${qlite_number}_hold`)
-    if (hold_status === 'off') {
-      root.log('debug', 'set the hold state for Q-Lite #' + qlite_number)
-      root.setVariableValues({
-        [`qlite${qlite_number}_hold`]: 'blink',
-      })
-      await root.sendOscMessage(qlite_number, paths.hold_solid)
-    }
-  }
+	if (path === '/button/ready-confirmed' && qlite_number) {
+		const status = await root.getVariableValue(`qlite${qlite_number}_status`)
+		root.log('debug', `Received ready-confirmed from Q-Lite #${qlite_number}, current status: ${status}`)
+		if (status === 'ready') {
+			root.log('debug', 'confirm the ready state for Q-Lite #' + qlite_number)
+			root.setVariableValues({
+				[`qlite${qlite_number}_status`]: 'ready-confirmed',
+			})
+			await root.sendOscMessage(qlite_number, paths.ready_solid)
+		}
+	} else if (path === '/button/go-confirmed' && qlite_number) {
+		const status = await root.getVariableValue(`qlite${qlite_number}_status`)
+		root.log('debug', `Received go-confirmed from Q-Lite #${qlite_number}, current status: ${status}`)
+		if (status === 'go') {
+			root.log('debug', 'confirm the go state for Q-Lite #' + qlite_number)
+			root.setVariableValues({
+				[`qlite${qlite_number}_status`]: 'go-confirmed',
+			})
+			await root.sendOscMessage(qlite_number, paths.go_solid)
+		}
+	} else if (path === '/button/hold' && qlite_number) {
+		const hold_status = await root.getVariableValue(`qlite${qlite_number}_hold`)
+		if (hold_status === 'off') {
+			root.log('debug', 'set the hold state for Q-Lite #' + qlite_number)
+			root.setVariableValues({
+				[`qlite${qlite_number}_hold`]: 'blink',
+			})
+			await root.sendOscMessage(qlite_number, paths.hold_solid)
+		}
+	}
 }
 
-async function onDataHandler(root, data) {
+async function onDataHandler(root, source, data) {
 	try {
 		let buffer = Buffer.alloc(0)
 		buffer = Buffer.concat([buffer, data])
@@ -89,7 +89,7 @@ async function onDataHandler(root, data) {
 
 				root.log('debug', `OSC message: ${packet.address}, args: ${args_json}`)
 
-				const qlite_number = packet.args[0]?.value
+				const qlite_number = packet.args[0]?.value | getButtonNumberByAddress(root.config, source.address)
 				await handleButtonResponse(root, packet.address, qlite_number)
 
 				await root.checkFeedbacks()
@@ -100,7 +100,7 @@ async function onDataHandler(root, data) {
 					latest_received_path: packet.address,
 					latest_received_args: packet.args.length ? packet.args.map((arg) => arg.value) : undefined,
 					latest_received_timestamp: Date.now(),
-          lastest_received_qlite_number: String(qlite_number),
+					lastest_received_qlite_number: String(qlite_number),
 				})
 			} else if (packet.packets) {
 				for (const element of packet.packets) {
@@ -109,8 +109,8 @@ async function onDataHandler(root, data) {
 
 						root.log('debug', `Bundle element message: ${element.address}, args: ${JSON.stringify(element.args)}`)
 
-            const qlite_number = packet.args[0]?.value
-            await handleButtonResponse(root, packet.address, qlite_number)
+						const qlite_number = packet.args[0]?.value
+						await handleButtonResponse(root, packet.address, qlite_number)
 
 						await root.checkFeedbacks()
 
@@ -120,7 +120,7 @@ async function onDataHandler(root, data) {
 							latest_received_path: element.address,
 							latest_received_args: element.args.length ? element.args.map((arg) => arg.value) : undefined,
 							latest_received_timestamp: Date.now(),
-              lastest_received_qlite_number: String(qlite_number),
+							lastest_received_qlite_number: String(qlite_number),
 						})
 					}
 				}
@@ -131,6 +131,17 @@ async function onDataHandler(root, data) {
 	} catch (err) {
 		root.log('error', `Error handling incoming data: ${err.message}`)
 	}
+}
+
+function getButtonNumberByAddress(config, address) {
+	console.log(`Looking for address ${address} in config`)
+	let field = Object.keys(config)
+			.filter(key => key !== 'host')
+			.find(key => config[key] === address)
+	field = field ? field.replace('button', '') : null
+	field = field ? field.replace('-host', '') : null
+	console.log(`Found field ${field} for address ${address}`)
+	return field
 }
 
 module.exports = { onDataHandler }

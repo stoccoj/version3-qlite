@@ -1,6 +1,12 @@
 The MIT License
 
-Copyright (c) 2025 AS, Version 3, LLC
+Copyright (c) 2025 Version 3, LLC
+
+OSC Functionality based on Generic OSC Companion Module
+Copyright (c) 2018 Bitfocus AS, William Viker & Håkon Nessjøen
+
+Blink Functionality based on Generic Blink Companion Module
+Copyright (c) 2022-2023 Joseph Adams
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

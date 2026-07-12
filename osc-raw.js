@@ -40,7 +40,7 @@ class OSCRawClient {
 
 			this.client.on('data', async (data) => {
 				if (this.listen) {
-					onDataHandler(this.root, data)
+					onDataHandler(this.root, null, data)
 				}
 			})
 

@@ -3,7 +3,7 @@
 	"name": "version3-qlite",
 	"shortname": "qlite",
 	"description": "Version 3 Q-Lite plugin for Companion",
-	"version": "0.0.1",
+	"version": "1.0.0",
 	"license": "MIT",
 	"repository": "git+https://github.com/stoccoj/version3-qlite.git",
 	"bugs": "https://github.com/stoccoj/version3-qlite/issues",
