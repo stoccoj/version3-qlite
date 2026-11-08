@@ -1,25 +1,12 @@
+// Upgrade scripts are applied by index, so this array must never shrink or be reordered.
+// Index 0 was originally copied from the Generic OSC module (send_multiple sanitise), which does not apply to this
+// module. It is kept as a no-op so the upgrade index already recorded for existing connections stays valid.
 module.exports = [
-	(send_multiple_sanitise = function (context, props) {
-		const { actions } = props
-
-		const result = {
+	function noopLegacyUpgrade() {
+		return {
 			updatedConfig: null,
 			updatedActions: [],
 			updatedFeedbacks: [],
 		}
-
-		if (actions) {
-			actions.forEach((action) => {
-				if (action.actionId === 'send_multiple') {
-					if (action.options && !action.options.sanitise) {
-						action.options.sanitise = true
-						console.log(`Upgrade Script: Sanitise option added to send_multiple action ${action.id}.`)
-						result.updatedActions.push(action)
-					}
-				}
-			})
-		}
-
-		return result
-	}),
+	},
 ]

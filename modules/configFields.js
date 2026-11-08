@@ -1,5 +1,4 @@
 const { Regex } = require('@companion-module/base')
-const { off, ready, go } = require('./styles')
 
 module.exports = {
 	getConfigFields() {
@@ -26,7 +25,7 @@ module.exports = {
 				id: `qlite${i}-host`,
 				label: `Q-Lite #${i} Hostname or IP`,
 				width: 6,
-				regex: Regex.HOSTNAME | '',
+				regex: Regex.HOSTNAME,
 				required: requiredField,
 			})
 
@@ -35,7 +34,7 @@ module.exports = {
 				id: `qlite${i}-targetPort`,
 				label: 'Port',
 				width: 2,
-				regex: Regex.PORT | '',
+				regex: Regex.PORT,
 				default: '8000',
 				required: requiredField,
 			})
@@ -113,20 +112,6 @@ module.exports = {
 		})
 
 		fields.push({
-			type: 'dropdown',
-			id: 'protocol',
-			label: 'Protocol',
-			choices: [
-				{ id: 'udp', label: 'UDP (Default)' },
-				{ id: 'tcp', label: 'TCP' },
-				{ id: 'tcp-raw', label: 'TCP (Raw)' },
-			],
-			default: 'udp',
-			width: 4,
-			required: true,
-		})
-
-		fields.push({
 			type: 'checkbox',
 			id: 'listen',
 			label: 'Listen for Feedback',
@@ -141,7 +126,7 @@ module.exports = {
 			label: 'Feedback Port',
 			width: 4,
 			regex: Regex.PORT,
-			isVisible: (options, data) => options.listen && options.protocol === 'udp',
+			isVisible: (options) => options.listen,
 		})
 
 		fields.push({

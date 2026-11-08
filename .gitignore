@@ -1,8 +1,7 @@
 /node_modules/
 /.idea/
-/package-lock.json
+.DS_Store
 
 # Companion module build artifacts
 /pkg/
-/pkg.tgz
-
+*.tgz

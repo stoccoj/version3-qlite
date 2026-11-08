@@ -1,4 +1,12 @@
-const { InstanceStatus } = require('@companion-module/base')
+// Fallbacks for configs saved before these fields existed (setInterval/setTimeout with undefined runs every ~1 ms)
+const DEFAULT_RATE = 1000
+const DEFAULT_ON_TIME = 1000
+const DEFAULT_OFF_TIME = 500
+
+const msOrDefault = (value, fallback) => {
+	const ms = Number(value)
+	return Number.isFinite(ms) && ms >= 100 ? ms : fallback
+}
 
 module.exports = {
 	startInterval: function () {
@@ -8,10 +16,13 @@ module.exports = {
 		if (self.config.specifyCustomOnOff) {
 			self.flipTimeout()
 		} else {
-			self.INTERVAL = setInterval(() => {
-				self.boolValue = !self.boolValue
-				self.checkFeedbacks()
-			}, self.config.rate)
+			self.INTERVAL = setInterval(
+				() => {
+					self.boolValue = !self.boolValue
+					self.checkFeedbacks()
+				},
+				msOrDefault(self.config.rate, DEFAULT_RATE),
+			)
 		}
 	},
 
@@ -25,13 +36,16 @@ module.exports = {
 			() => {
 				self.flipTimeout()
 			},
-			self.boolValue ? self.config.onTime : self.config.offTime,
+			self.boolValue
+				? msOrDefault(self.config.onTime, DEFAULT_ON_TIME)
+				: msOrDefault(self.config.offTime, DEFAULT_OFF_TIME),
 		)
 	},
 
 	stopInterval: function () {
 		let self = this
 		clearInterval(self.INTERVAL)
+		clearTimeout(self.INTERVAL)
 		self.INTERVAL = null
 	},
 

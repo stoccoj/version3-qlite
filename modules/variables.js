@@ -6,8 +6,8 @@ module.exports = {
 			{ variableId: 'latest_received_timestamp', name: 'Latest OSC message received timestamp' },
 			{ variableId: 'latest_received_raw', name: 'Latest OSC message received' },
 			{ variableId: 'latest_received_path', name: 'Latest OSC command received' },
-			{ variableId: 'latest_received_client', name: 'Latest OSC message received client (UDP only)' },
-			{ variableId: 'latest_received_port', name: 'Latest OSC message received port (UDP only)' },
+			{ variableId: 'latest_received_client', name: 'Latest OSC message received client' },
+			{ variableId: 'latest_received_port', name: 'Latest OSC message received port' },
 			{ variableId: 'latest_received_args', name: 'Latest OSC arguments received array.' },
 			{ variableId: 'latest_received_qlite_number', name: 'Latest OSC message received from Q-Lite' },
 		]
@@ -20,11 +20,11 @@ module.exports = {
 				})
 				variables.push({
 					variableId: 'qlite' + qlite.id + '_status',
-					name: 'Q-Lite #' + qlite.label + ' Status (ready, go)',
+					name: 'Q-Lite #' + qlite.label + ' Status (off, ready, ready-confirmed, go, go-confirmed)',
 				})
 				variables.push({
 					variableId: 'qlite' + qlite.id + '_hold',
-					name: 'Q-Lite #' + qlite.label + ' Hold Status (on, off)',
+					name: 'Q-Lite #' + qlite.label + ' Hold Status (on, off, blink)',
 				})
 				variables.push({
 					variableId: 'qlite' + qlite.id + '_latest_sent_timestamp',
@@ -59,7 +59,7 @@ module.exports = {
 		let self = this
 
 		try {
-			variableValues = {}
+			const variableValues = {}
 
 			if (self.config.specifyCustomOnOff) {
 				variableValues['onTime'] = self.config.onTime
@@ -71,7 +71,6 @@ module.exports = {
 			self.setVariableValues(variableValues)
 		} catch (error) {
 			self.log('error', `Error updating variables: ${error.message}`)
-			console.log(error)
 		}
 	},
 }

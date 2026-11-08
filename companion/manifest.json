@@ -1,9 +1,9 @@
 {
 	"id": "version3-qlite",
-	"name": "version3-qlite",
+	"name": "Version 3: Q-Lite",
 	"shortname": "qlite",
-	"description": "Version 3 Q-Lite plugin for Companion",
-	"version": "1.0.0",
+	"description": "Control Version 3 Q-Lite cue lights (Ready, Go, Hold, Clear) over OSC",
+	"version": "1.1.0",
 	"license": "MIT",
 	"repository": "git+https://github.com/stoccoj/version3-qlite.git",
 	"bugs": "https://github.com/stoccoj/version3-qlite/issues",
@@ -13,7 +13,7 @@
 			"email": "james.stocco@version3llc.com"
 		}
 	],
-	"legacyIds": ["direct_osc", "osc"],
+	"legacyIds": [],
 	"runtime": {
 		"type": "node22",
 		"api": "nodejs-ipc",
