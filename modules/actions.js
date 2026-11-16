@@ -20,7 +20,16 @@ const cancelAutoClear = function (root, qlite_number) {
 	}
 }
 
+// Ready/Go are blocked while held: the Q-Lite would drop Hold on any Ready/Go LED command, and Companion would not
+const blockedByHold = function (root, qlite_number, action) {
+	const hold = root.getVariableValue(`qlite${qlite_number}_hold`)
+	if (!isHeld(hold)) return false
+	root.log('info', `Q-Lite #${qlite_number} is held, ignoring ${action}`)
+	return true
+}
+
 const handle_ready = async function (root, qlite_number) {
+	if (blockedByHold(root, qlite_number, 'Ready')) return
 	const rc = root.config[`qlite${qlite_number}-requestReadyConfirmation`]
 	root.log('debug', `Q-Lite #${qlite_number} Request Confirmation is set to ${rc}`)
 	let path = rc ? paths.ready_blink : paths.ready_solid
@@ -34,6 +43,7 @@ const handle_ready = async function (root, qlite_number) {
 }
 
 const handle_go = async function (root, qlite_number) {
+	if (blockedByHold(root, qlite_number, 'Go')) return
 	const rc = root.config[`qlite${qlite_number}-requestGoConfirmation`]
 	root.log('debug', `Q-Lite #${qlite_number} Request Confirmation is set to ${rc}`)
 	let path = rc ? paths.go_blink : paths.go_solid
@@ -60,7 +70,14 @@ const handle_go = async function (root, qlite_number) {
 			delete root.autoClearTimers[String(qlite_number)]
 			let qlite_status = root.getVariableValue(`qlite${qlite_number}_status`)
 			root.log('debug', `Auto Clear check for Q-Lite #${qlite_number}, status is ${qlite_status}`)
-			if (qlite_status === 'go' || qlite_status === 'go-confirmed') {
+			if (qlite_status !== 'go' && qlite_status !== 'go-confirmed') return
+			if (isHeld(root.getVariableValue(`qlite${qlite_number}_hold`))) {
+				// Keep the Hold: only clear the state that releasing Hold would restore. Nothing is sent, as the
+				// Q-Lite is showing Hold and its Go LED is already off.
+				root.log('debug', `Auto Clear for held Q-Lite #${qlite_number}: Go will not be restored on release`)
+				root.setVariableValues({ [`qlite${qlite_number}_status`]: 'off' })
+				root.checkFeedbacks()
+			} else {
 				handle_clear(root, qlite_number).catch((err) => {
 					root.log('error', `Auto Clear failed for Q-Lite #${qlite_number}: ${err.message}`)
 				})
@@ -107,6 +124,21 @@ const handle_hold = async function (root, qlite_number) {
 }
 
 module.exports = {
+	/**
+	 * Send Companion's state for one Q-Lite as a single command. Used when the heartbeat shows the Q-Lite differs.
+	 * Every on-command turns the other LEDs off, so one command describes the whole state.
+	 */
+	pushStateToQlite: async function (qlite_number) {
+		const hold = this.getVariableValue(`qlite${qlite_number}_hold`)
+		const status = this.getVariableValue(`qlite${qlite_number}_status`)
+		let path = paths.clear
+		if (hold === 'on') path = paths.hold_blink
+		else if (hold === 'blink') path = paths.hold_solid
+		else if (restorePaths[status]) path = restorePaths[status]
+		this.log('debug', `Re-sending Companion's state to Q-Lite #${qlite_number}: ${path}`)
+		await this.sendOscMessage(qlite_number, path)
+	},
+
 	initActions: function () {
 		let self = this // required to have reference to outer `this`
 		let actions = {}

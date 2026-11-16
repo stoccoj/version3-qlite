@@ -32,13 +32,7 @@ class OSCUDPClient {
 			})
 
 			this.socket.on('message', (msg, rinfo) => {
-				this.root.log('debug', `Received UDP message from ${rinfo.address}:${rinfo.port}`)
-
-				this.root.setVariableValues({
-					latest_received_client: rinfo.address,
-					latest_received_port: rinfo.port,
-				})
-
+				// latest_received_client / _port are set by onDataHandler, which skips heartbeat replies
 				onDataHandler(this.root, rinfo, msg)
 			})
 

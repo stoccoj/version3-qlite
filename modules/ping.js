@@ -16,6 +16,10 @@ const PING_ENV = {
 	PATH: [process.env.PATH || '', ...extraPaths].join(path.delimiter),
 }
 
+const PING_INTERVAL = 10000
+const HEARTBEAT_INTERVAL = 2000
+const HEARTBEAT_TIMEOUT = 6000
+
 module.exports = {
 	/**
 	 * Send a single echo request.
@@ -36,6 +40,11 @@ module.exports = {
 		})
 	},
 
+	/**
+	 * Monitor one Q-Lite. With Listen for Feedback on, a /status/query heartbeat is sent every 2 s. Once the Q-Lite has
+	 * answered one (heartbeatCapable), it is online while replies keep coming and offline after 6 s of silence, and
+	 * ICMP ping is skipped. Otherwise (old firmware, listen off) it is pinged every 10 s as before.
+	 */
 	startPingMonitor(qlite_number, ip) {
 		let self = this
 		let isOnline = false
@@ -55,26 +64,86 @@ module.exports = {
 			}
 		}
 
+		const listening = () => Boolean(self.client?.isConnected())
+		const heartbeatActive = () => Boolean(self.heartbeatCapable[qlite_number]) && listening()
+
 		const ping = () => {
+			if (heartbeatActive()) return
 			if (!ip) {
 				setStatus(false)
 				return
 			}
 
-			self.pingHost(ip).then(setStatus, () => setStatus(false))
+			self.pingHost(ip).then(
+				(online) => {
+					if (stopped) return
+					if (online) self.setLastSeen(qlite_number)
+					setStatus(online)
+				},
+				() => setStatus(false),
+			)
+		}
+
+		const heartbeat = () => {
+			if (stopped || !listening()) return
+			if (heartbeatActive() && Date.now() - (self.lastHeard[qlite_number] ?? 0) > HEARTBEAT_TIMEOUT) {
+				if (self.pingResults[qlite_number] !== false) {
+					self.log('debug', `No heartbeat from Q-Lite #${qlite_number} for ${HEARTBEAT_TIMEOUT / 1000} s`)
+				}
+				setStatus(false)
+			}
+			self.sendStatusQuery(qlite_number)
 		}
 
 		// Initial ping
 		ping()
-		const interval = setInterval(ping, 10000)
+		const interval = setInterval(ping, PING_INTERVAL)
+		const heartbeatInterval = setInterval(heartbeat, HEARTBEAT_INTERVAL)
 
 		// Return a function to get the current status and a stop function
 		return {
+			qliteNumber: qlite_number,
 			getStatus: () => isOnline,
+			/** A message arrived from this Q-Lite: it is online now. */
+			markHeard: () => {
+				if (stopped) return
+				self.lastHeard[qlite_number] = Date.now()
+				self.setLastSeen(qlite_number)
+				setStatus(true)
+			},
 			stop: () => {
 				stopped = true
 				clearInterval(interval)
+				clearInterval(heartbeatInterval)
 			},
 		}
+	},
+
+	/** Send /status/query n seq. Sent directly, so it doesn't overwrite the latest_sent variables every 2 s. */
+	sendStatusQuery(qlite_number) {
+		const host = this.resolvedHosts?.[qlite_number]
+		const port = Number(this.config[`qlite${qlite_number}-targetPort`])
+		if (!host || !port) return
+		const seq = (this.querySeq[qlite_number] ?? 0) + 1
+		this.querySeq[qlite_number] = seq
+		this.oscSend(host, port, '/status/query', [
+			{ type: 'i', value: Number(qlite_number) },
+			{ type: 'i', value: seq },
+		])
+	},
+
+	/** Record that Q-Lite n was heard from, and mark it online if it is being monitored. */
+	markQliteHeard(qlite_number) {
+		const monitor = this.pingMonitors.find((m) => m.qliteNumber === Number(qlite_number))
+		if (monitor) {
+			monitor.markHeard()
+		} else {
+			this.lastHeard[qlite_number] = Date.now()
+			this.setLastSeen(qlite_number)
+		}
+	},
+
+	setLastSeen(qlite_number) {
+		this.setVariableValues({ [`qlite${qlite_number}_last_seen`]: Date.now() })
 	},
 }

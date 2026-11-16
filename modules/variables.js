@@ -19,6 +19,10 @@ module.exports = {
 					name: 'Q-Lite #' + qlite.label + ' Online Status (true, false)',
 				})
 				variables.push({
+					variableId: 'qlite' + qlite.id + '_last_seen',
+					name: 'Q-Lite #' + qlite.label + ' Last seen timestamp (heartbeat, feedback or ping)',
+				})
+				variables.push({
 					variableId: 'qlite' + qlite.id + '_status',
 					name: 'Q-Lite #' + qlite.label + ' Status (off, ready, ready-confirmed, go, go-confirmed)',
 				})

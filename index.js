@@ -22,9 +22,14 @@ class QLiteInstance extends InstanceBase {
 		this.pingMonitors = [] // { stop } handles returned by startPingMonitor
 		this.autoClearTimers = {} // Q-Lite number -> pending auto-clear timeout
 		this.resolvedHosts = {} // Q-Lite number -> resolved IP address
-		this.pingResults = {} // Q-Lite number -> true/false from the latest ping (absent until the first reply)
+		this.pingResults = {} // Q-Lite number -> online true/false from ping or heartbeat (absent until known)
 		this.configStatus = { status: InstanceStatus.Connecting, message: null } // status from config/listener checks
 		this.lastStatus = null // last { status, message } passed to updateStatus
+
+		// Heartbeat / acknowledgement state, keyed by Q-Lite number
+		this.stateSynced = {} // true once Companion's state is authoritative (first reply adopted, or a command sent)
+		this.querySeq = {} // seq of the latest /status/query sent (only ever increases)
+		this.lastCommandSeq = {} // querySeq at the time of the latest /led/* command; older replies are stale
 
 		Object.assign(this, {
 			...configFields,
@@ -36,6 +41,8 @@ class QLiteInstance extends InstanceBase {
 			...presets,
 			...ping,
 		})
+
+		this.resetHeartbeatState()
 	}
 
 	//Initialization
@@ -48,6 +55,7 @@ class QLiteInstance extends InstanceBase {
 		this.stopInterval()
 		this.stopPingMonitors()
 		this.clearAutoClearTimers()
+		this.clearPendingAcks()
 		await this.closeListener()
 		this.lastStatus = null
 		this.log('debug', 'destroy')
@@ -61,6 +69,7 @@ class QLiteInstance extends InstanceBase {
 		await this.closeListener()
 		this.pingResults = {}
 		this.resolvedHosts = {}
+		this.resetHeartbeatState()
 
 		const count = this.getQliteCount()
 		this.buttons = [{ id: '0', label: 'All' }]
@@ -207,6 +216,20 @@ class QLiteInstance extends InstanceBase {
 		}
 
 		return unresolved
+	}
+
+	/**
+	 * Forget what was learned about the Q-Lites' heartbeat and echo support (the config may now point elsewhere).
+	 * stateSynced, querySeq and lastCommandSeq are kept: state survives config saves, and keeping the sequence numbers
+	 * increasing means a reply to a query sent before the save can never look newer than a command sent after it.
+	 */
+	resetHeartbeatState() {
+		this.clearPendingAcks()
+		this.heartbeatCapable = {} // answered /status/query, so the heartbeat replaces ping
+		this.ackCapable = {} // seen echoing commands, so /led/* commands are re-sent until echoed
+		this.lastHeard = {} // Date.now() of the latest message
+		this.lastBootId = {} // boot_id from the latest /status reply
+		this.pendingAcks = {} // { path, host, port, args, retries, timer } awaiting an echo
 	}
 
 	stopPingMonitors() {

@@ -126,6 +126,7 @@ module.exports = {
 			label: 'Feedback Port',
 			width: 4,
 			regex: Regex.PORT,
+			tooltip: "Must match the Q-Lite's CONTROLLER_BUTTON_PORT (default 8002).",
 			isVisible: (options) => options.listen,
 		})
 

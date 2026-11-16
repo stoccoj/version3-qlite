@@ -5,7 +5,7 @@ Guidance for coding agents working in this repository.
 ## Project
 
 Bitfocus Companion module for Version 3 Q-Lite cue lights, controlled over OSC/UDP. CommonJS, Node ≥ 22,
-`@companion-module/base` 1.x and `osc`. Current version: **1.1.0**. Supports up to 16 Q-Lites per connection.
+`@companion-module/base` 1.x and `osc`. Current version: **1.2.0**. Supports up to 16 Q-Lites per connection.
 
 ## Layout
 
