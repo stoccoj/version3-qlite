@@ -17,7 +17,8 @@ surface), with optional two-way confirmation from the remote station.
   Hold stays on and Go is not restored when Hold is released.
 - **Configurable button blinking** — a single blink rate, or custom on/off times.
 - **Online monitoring** — with _Listen for Feedback_ on, each Q-Lite is sent an OSC heartbeat (`/status/query`) every
-  2 seconds. A Q-Lite that answers is online straight away, and offline after 6 seconds without a reply. Q-Lites that
+  2 seconds. A Q-Lite that answers is online straight away, and offline after 6 seconds without a reply. While it is
+  offline the heartbeat slows to every 10 seconds, and the first reply brings it back online. Q-Lites that
   don't answer the heartbeat (older firmware, or _Listen for Feedback_ off) are pinged every 10 seconds instead. The
   Ready button turns red when a Q-Lite is offline. The connection status shows a **Warning** naming any offline
   Q-Lites, and **Connection Failure** when all of them are offline. Q-Lites whose status isn't known yet aren't counted.
@@ -145,8 +146,8 @@ Each message is sent with a single integer argument: the Q-Lite number.
 | `/led/clear`       | Clear all LEDs                              |
 | `/online`          | Sent once when the module starts            |
 
-`/status/query i<n> i<seq>` is sent every 2 seconds per Q-Lite while _Listen for Feedback_ is on. `seq` increases with
-every query.
+`/status/query i<n> i<seq>` is sent every 2 seconds per Q-Lite while _Listen for Feedback_ is on (every 10 seconds
+while the Q-Lite is offline). `seq` increases with every query.
 
 ### Q-Lite → Module
 
@@ -176,6 +177,12 @@ matched against the configured hosts.
 | Hold blink / solid | Hold `on` / `blink` (Ready/Go are not compared) |
 
 ## Changelog
+
+### 1.2.1
+
+- **Slower heartbeat while offline.** Once a Q-Lite that answers the heartbeat has gone offline, `/status/query` is
+  sent every 10 seconds instead of every 2 seconds, so an unplugged or powered-off Q-Lite doesn't generate needless
+  traffic. The first reply brings it back online straight away and returns to every 2 seconds. It is still not pinged.
 
 ### 1.2.0
 

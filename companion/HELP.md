@@ -24,6 +24,8 @@ With **Listen for Feedback** on, Companion sends each Q-Lite a heartbeat every 2
 newer answer it with their current LED state:
 
 - A Q-Lite is online as soon as it answers, and offline after 6 seconds without an answer.
+- While a Q-Lite is offline, the heartbeat slows to every 10 seconds. Its first answer brings it back online and the
+  heartbeat returns to every 2 seconds.
 - The first answer after Companion starts sets that Q-Lite's state in Companion.
 - After that, if the Q-Lite shows something different from Companion (for example after it restarted, came back online,
   or missed a command), Companion sends its state again.
@@ -91,7 +93,7 @@ _Tip: args variables are arrays. Use the expression `$(qlite:latest_received_arg
 
 `/led/ready/blink`, `/led/ready/solid`, `/led/go/blink`, `/led/go/solid`, `/led/hold/blink`, `/led/hold/solid`,
 `/led/hold/off`, `/led/clear`, and `/online` (sent once when the module starts). With Listen for Feedback on,
-`/status/query <n> <seq>` is also sent every 2 seconds.
+`/status/query <n> <seq>` is also sent every 2 seconds (every 10 seconds while the Q-Lite is offline).
 
 **Received from the Q-Lite** (requires Listen for Feedback; first integer argument is the Q-Lite number):
 

@@ -19,6 +19,9 @@ const PING_ENV = {
 const PING_INTERVAL = 10000
 const HEARTBEAT_INTERVAL = 2000
 const HEARTBEAT_TIMEOUT = 6000
+const OFFLINE_QUERY_INTERVAL = 10000
+// Counted in heartbeat ticks rather than timestamps, so timer jitter can't stretch the gap to 12 s
+const OFFLINE_QUERY_EVERY = OFFLINE_QUERY_INTERVAL / HEARTBEAT_INTERVAL
 
 module.exports = {
 	/**
@@ -43,13 +46,16 @@ module.exports = {
 	/**
 	 * Monitor one Q-Lite. With Listen for Feedback on, a /status/query heartbeat is sent every 2 s. Once the Q-Lite has
 	 * answered one (heartbeatCapable), it is online while replies keep coming and offline after 6 s of silence, and
-	 * ICMP ping is skipped. Otherwise (old firmware, listen off) it is pinged every 10 s as before.
+	 * ICMP ping is skipped. While such a Q-Lite is offline the query slows to every 10 s; the first reply brings it back
+	 * online and back to every 2 s. Otherwise (old firmware, listen off) it is pinged every 10 s as before.
 	 */
 	startPingMonitor(qlite_number, ip) {
 		let self = this
 		let isOnline = false
 
 		let stopped = false
+		let slowed = false // offline by heartbeat: querying every OFFLINE_QUERY_INTERVAL
+		let ticksSinceQuery = 0
 
 		const setStatus = (online) => {
 			if (stopped) return // a ping that was in flight when the monitor was stopped
@@ -86,12 +92,24 @@ module.exports = {
 
 		const heartbeat = () => {
 			if (stopped || !listening()) return
-			if (heartbeatActive() && Date.now() - (self.lastHeard[qlite_number] ?? 0) > HEARTBEAT_TIMEOUT) {
-				if (self.pingResults[qlite_number] !== false) {
-					self.log('debug', `No heartbeat from Q-Lite #${qlite_number} for ${HEARTBEAT_TIMEOUT / 1000} s`)
-				}
+			const silent = heartbeatActive() && Date.now() - (self.lastHeard[qlite_number] ?? 0) > HEARTBEAT_TIMEOUT
+			if (silent) {
 				setStatus(false)
+				if (!slowed) {
+					// Still query on the tick that detects it, then slow down
+					slowed = true
+					self.log(
+						'debug',
+						`No heartbeat from Q-Lite #${qlite_number} for ${HEARTBEAT_TIMEOUT / 1000} s; ` +
+							`querying every ${OFFLINE_QUERY_INTERVAL / 1000} s until it answers`,
+					)
+				} else if (++ticksSinceQuery < OFFLINE_QUERY_EVERY) {
+					return
+				}
+			} else {
+				slowed = false
 			}
+			ticksSinceQuery = 0
 			self.sendStatusQuery(qlite_number)
 		}
 
