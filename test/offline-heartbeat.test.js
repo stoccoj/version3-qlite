@@ -63,7 +63,7 @@ async function takeOffline(t, inst, n, answering = []) {
 test('while offline, queries are sent every 10 s instead of every 2 s', async (t) => {
 	const inst = await setup(t, 2)
 	await takeOffline(t, inst, 2, [2])
-	assert.deepEqual(last(inst), [InstanceStatus.UnknownWarning, 'Q-Lite #1 offline'])
+	assert.deepEqual(last(inst), [InstanceStatus.Ok, 'Q-Lite #1 offline'])
 
 	for (let i = 0; i < 30000 / HEARTBEAT_INTERVAL; i++) {
 		await tick(t)

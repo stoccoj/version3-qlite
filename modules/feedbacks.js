@@ -93,6 +93,18 @@ module.exports = {
 			},
 		}
 
+		feedbacks.offline = {
+			type: 'boolean',
+			name: 'Q-Lite is offline',
+			description: 'Changes the button style while the Q-Lite is offline',
+			defaultStyle: style.hold,
+			options: [qliteOption],
+			callback: (feedback) => {
+				const online = self.getVariableValue(`qlite${feedback.options.number}_online`)
+				return online === false || online === 'false'
+			},
+		}
+
 		self.setFeedbackDefinitions(feedbacks)
 	},
 }

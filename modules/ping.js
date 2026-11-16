@@ -62,7 +62,7 @@ module.exports = {
 			const changed = online !== self.getVariableValue(`qlite${qlite_number}_online`)
 			isOnline = online
 			self.setVariableValues({ [`qlite${qlite_number}_online`]: online })
-			if (changed) self.checkFeedbacks('ready')
+			if (changed) self.checkFeedbacks('ready', 'offline')
 
 			if (self.pingResults[qlite_number] !== online) {
 				self.pingResults[qlite_number] = online

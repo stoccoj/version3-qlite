@@ -32,24 +32,24 @@ test('all online -> OK', async (t) => {
 	assert.equal(inst.getVariableValue('qlite3_online'), true)
 })
 
-test('one offline -> Warning naming it', async (t) => {
+test('one offline -> still OK, naming it in the message', async (t) => {
 	const inst = await setup(t, 3, { '10.0.0.2': false })
-	assert.deepEqual(last(inst), [InstanceStatus.UnknownWarning, 'Q-Lite #2 offline'])
+	assert.deepEqual(last(inst), [InstanceStatus.Ok, 'Q-Lite #2 offline'])
 })
 
 test('several offline are listed in order', async (t) => {
 	const inst = await setup(t, 3, { '10.0.0.3': false, '10.0.0.2': false })
-	assert.deepEqual(last(inst), [InstanceStatus.UnknownWarning, 'Q-Lite #2, #3 offline'])
+	assert.deepEqual(last(inst), [InstanceStatus.Ok, 'Q-Lite #2, #3 offline'])
 })
 
-test('all offline -> ConnectionFailure, then recovers to OK', async (t) => {
+test('all offline -> ConnectionFailure, then recovers', async (t) => {
 	const pingMap = { '10.0.0.1': false, '10.0.0.2': false }
 	const inst = await setup(t, 2, pingMap)
 	assert.deepEqual(last(inst), [InstanceStatus.ConnectionFailure, 'All Q-Lites offline'])
 
 	pingMap['10.0.0.1'] = true
 	await nextPing(t, inst)
-	assert.deepEqual(last(inst), [InstanceStatus.UnknownWarning, 'Q-Lite #2 offline'])
+	assert.deepEqual(last(inst), [InstanceStatus.Ok, 'Q-Lite #2 offline'])
 
 	pingMap['10.0.0.2'] = true
 	await nextPing(t, inst)
@@ -63,7 +63,7 @@ test('goes offline on a later ping', async (t) => {
 
 	pingMap['10.0.0.2'] = false
 	await nextPing(t, inst)
-	assert.deepEqual(last(inst), [InstanceStatus.UnknownWarning, 'Q-Lite #2 offline'])
+	assert.deepEqual(last(inst), [InstanceStatus.Ok, 'Q-Lite #2 offline'])
 	assert.equal(inst.getVariableValue('qlite2_online'), false)
 })
 
@@ -82,7 +82,7 @@ test('Q-Lites that have not answered yet are not counted', async (t) => {
 
 	pending['10.0.0.2'](true)
 	await settle()
-	assert.deepEqual(last(inst), [InstanceStatus.UnknownWarning, 'Q-Lite #1 offline'])
+	assert.deepEqual(last(inst), [InstanceStatus.Ok, 'Q-Lite #1 offline'])
 })
 
 test('nothing known yet keeps the config status', async (t) => {
@@ -124,7 +124,7 @@ test('no duplicate updateStatus calls when nothing changes', async (t) => {
 test('a config save re-sends the status and forgets old ping results', async (t) => {
 	const pingMap = { '10.0.0.2': false }
 	const inst = await setup(t, 2, pingMap)
-	assert.deepEqual(last(inst), [InstanceStatus.UnknownWarning, 'Q-Lite #2 offline'])
+	assert.deepEqual(last(inst), [InstanceStatus.Ok, 'Q-Lite #2 offline'])
 
 	// Reduce to one Q-Lite: #2's old result must not count
 	await inst.configUpdated(makeConfig(1))

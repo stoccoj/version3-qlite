@@ -152,7 +152,8 @@ class QLiteInstance extends InstanceBase {
 
 	/**
 	 * Combine the config status with the latest ping results and show it in Companion.
-	 * Q-Lites that have not answered a ping yet are not counted.
+	 * Q-Lites that have not answered a ping yet are not counted. Some offline only adds them to the message: Companion
+	 * marks every button of a connection that isn't OK, so a per-Q-Lite outage is shown by the feedbacks instead.
 	 */
 	updateOverallStatus() {
 		let { status, message } = this.configStatus
@@ -168,7 +169,6 @@ class QLiteInstance extends InstanceBase {
 				status = InstanceStatus.ConnectionFailure
 				message = 'All Q-Lites offline'
 			} else if (offline.length > 0) {
-				status = InstanceStatus.UnknownWarning
 				const offlineMessage = `Q-Lite ${offline.map((n) => `#${n}`).join(', ')} offline`
 				message = message ? `${message}; ${offlineMessage}` : offlineMessage
 			}

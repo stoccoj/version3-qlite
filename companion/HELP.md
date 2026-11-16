@@ -7,9 +7,9 @@ The remote station can optionally confirm Ready and Go, and can request a Hold.
 
 1. Set **Number of Q-Lites** (1–16).
 2. For each Q-Lite, enter its **Hostname or IP** and **Port** (default `8000`).
-3. If you want confirmations, remote Hold, or the heartbeat, enable **Listen for Feedback** and set the **Feedback
-   Port**. The Feedback Port must match the Q-Lite's `CONTROLLER_BUTTON_PORT` (default `8002`), and the Q-Lite's
-   `CONTROLLER_IP` must point at the Companion host.
+3. **Listen for Feedback** (needed for confirmations, remote Hold, and the heartbeat) is on by default, with the
+   **Feedback Port** set to `8002`. The Feedback Port must match the Q-Lite's `CONTROLLER_BUTTON_PORT` (default
+   `8002`), and the Q-Lite's `CONTROLLER_IP` must point at the Companion host.
 4. Optional settings:
    - **Confirm Ready** / **Confirm Go** (per Q-Lite): the LED blinks until the remote station confirms, then goes solid.
    - **Auto Clear**: automatically clear a Go state after 5–60 seconds. If the Q-Lite is held when the timer runs out,
@@ -34,8 +34,9 @@ newer answer it with their current LED state:
 Q-Lites that don't answer the heartbeat (older firmware, or Listen for Feedback off) are pinged every 10 seconds
 instead.
 
-The connection status turns to **Warning** when one or more Q-Lites are offline (the message names them), and to
-**Connection Failure** when all of them are offline.
+When some Q-Lites are offline the connection status stays **OK** and its message names them, so Companion doesn't put
+its warning indicator on every button. It turns to **Connection Failure** when all of them are offline. To show an
+outage on a Q-Lite's own buttons, use the Ready feedback (red when offline) or the **Q-Lite is offline** feedback.
 
 ### Actions
 
@@ -54,6 +55,7 @@ Each action can target a single Q-Lite or **All**.
 - **Ready** (yellow): solid when Ready, blinks while awaiting confirmation, **red** when the Q-Lite is offline.
 - **Go** (green): solid when Go, blinks while awaiting confirmation.
 - **Hold** (red): solid when Hold was set from Companion, blinking when Hold was triggered from the remote station.
+- **Q-Lite is offline** (red): on while the Q-Lite is offline. Add it to any button that should show the outage.
 
 Ready and Go feedbacks are hidden while Hold is on (set from Companion or requested by the remote station).
 

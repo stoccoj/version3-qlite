@@ -20,8 +20,10 @@ surface), with optional two-way confirmation from the remote station.
   2 seconds. A Q-Lite that answers is online straight away, and offline after 6 seconds without a reply. While it is
   offline the heartbeat slows to every 10 seconds, and the first reply brings it back online. Q-Lites that
   don't answer the heartbeat (older firmware, or _Listen for Feedback_ off) are pinged every 10 seconds instead. The
-  Ready button turns red when a Q-Lite is offline. The connection status shows a **Warning** naming any offline
-  Q-Lites, and **Connection Failure** when all of them are offline. Q-Lites whose status isn't known yet aren't counted.
+  Ready button turns red when a Q-Lite is offline, and the _Q-Lite is offline_ feedback can mark any other button. When
+  only some Q-Lites are offline the connection stays **OK** (its status message names them), so Companion's warning
+  indicator doesn't appear on every button of the connection. **Connection Failure** is shown when all of them are
+  offline. Q-Lites whose status isn't known yet aren't counted.
 - **State sync** — the heartbeat reply reports the Q-Lite's actual LEDs. The first reply after Companion starts is
   adopted; after that, if the Q-Lite differs from Companion (for example after it restarted or came back online),
   Companion's state is re-sent.
@@ -56,8 +58,8 @@ These fields are repeated for each Q-Lite, based on **Number of Q-Lites** (1–1
 
 | Field                       | Description                                                                       | Default |
 | --------------------------- | --------------------------------------------------------------------------------- | ------- |
-| Listen for Feedback         | Listen for OSC messages from the Q-Lites (confirmations, remote Hold, heartbeat). | Off     |
-| Feedback Port               | Local UDP port to listen on. Must match the Q-Lite's `CONTROLLER_BUTTON_PORT`.    | —       |
+| Listen for Feedback         | Listen for OSC messages from the Q-Lites (confirmations, remote Hold, heartbeat). | On      |
+| Feedback Port               | Local UDP port to listen on. Must match the Q-Lite's `CONTROLLER_BUTTON_PORT`.    | `8002`  |
 | Auto Clear                  | Automatically clear a Go state after a period of time.                            | Off     |
 | Auto Clear Time (seconds)   | Delay before an automatic clear (5–60).                                           | `15`    |
 | Specify Custom On/Off Times | Use separate on/off times instead of a single blink rate.                         | Off     |
@@ -78,11 +80,12 @@ Every action takes a **Q-Lite #** option, which can be a specific Q-Lite or **Al
 
 ## Feedbacks
 
-| Feedback | Style  | Behavior                                                                                                     |
-| -------- | ------ | ------------------------------------------------------------------------------------------------------------ |
-| `ready`  | Yellow | Solid when Ready is confirmed; blinks while awaiting confirmation. Turns **red** when the Q-Lite is offline. |
-| `go`     | Green  | Solid when Go is confirmed; blinks while awaiting confirmation.                                              |
-| `hold`   | Red    | Solid when Hold is set from Companion; blinks when Hold was triggered from the remote station.               |
+| Feedback  | Style  | Behavior                                                                                                     |
+| --------- | ------ | ------------------------------------------------------------------------------------------------------------ |
+| `ready`   | Yellow | Solid when Ready is confirmed; blinks while awaiting confirmation. Turns **red** when the Q-Lite is offline. |
+| `go`      | Green  | Solid when Go is confirmed; blinks while awaiting confirmation.                                              |
+| `hold`    | Red    | Solid when Hold is set from Companion; blinks when Hold was triggered from the remote station.               |
+| `offline` | Red    | Boolean: on while the Q-Lite is offline. Add it to any button that should show that Q-Lite's outage.         |
 
 Ready and Go feedbacks are suppressed while Hold is on (whether set from Companion or requested by the remote station).
 Feedbacks work whatever the connection is named.
@@ -177,6 +180,16 @@ matched against the configured hosts.
 | Hold blink / solid | Hold `on` / `blink` (Ready/Go are not compared) |
 
 ## Changelog
+
+### 1.2.2
+
+- **A single offline Q-Lite no longer puts the whole connection in Warning.** Companion shows its warning indicator on
+  every button of a connection that isn't OK, so one unplugged Q-Lite marked all of the module's buttons. The
+  connection now stays OK while some Q-Lites are offline (the status message still names them) and only shows
+  Connection Failure when all are offline. Unresolvable hostnames still give a Warning.
+- New **Q-Lite is offline** boolean feedback (red by default), for showing an outage on just that Q-Lite's buttons.
+- _Listen for Feedback_ is now on by default for new connections, with _Feedback Port_ defaulting to `8002` (the
+  Q-Lite's default `CONTROLLER_BUTTON_PORT`). Existing connections keep their saved settings.
 
 ### 1.2.1
 

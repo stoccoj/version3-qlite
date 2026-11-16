@@ -109,3 +109,16 @@ test('destroy clears monitors, listener, auto-clear timers and blink interval', 
 	assert.deepEqual(inst.autoClearTimers, {})
 	assert.equal(inst.INTERVAL, null)
 })
+
+test('Listen for Feedback is on by default, with Feedback Port 8002, and that is a valid config', async () => {
+	const fields = Object.fromEntries((await createInstance(makeConfig(1))).getConfigFields().map((f) => [f.id, f]))
+	assert.equal(fields.listen.default, true)
+	assert.equal(fields.feedbackPort.default, '8002')
+
+	await cleanup()
+	const inst = await createInstance(
+		makeConfig(1, { listen: fields.listen.default, feedbackPort: fields.feedbackPort.default }),
+	)
+	assert.notEqual(inst.statusLog.at(-1)[0], InstanceStatus.BadConfig)
+	assert.ok(inst.client, 'the feedback listener is started')
+})

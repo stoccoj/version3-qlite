@@ -95,7 +95,7 @@ test('a reply marks the Q-Lite online at once and stops pinging it', async (t) =
 	await reply(inst, 1)
 	assert.equal(inst.getVariableValue('qlite1_online'), true)
 	assert.equal(inst.getVariableValue('qlite1_last_seen'), Date.now())
-	assert.deepEqual(last(inst), [InstanceStatus.UnknownWarning, 'Q-Lite #2 offline'])
+	assert.deepEqual(last(inst), [InstanceStatus.Ok, 'Q-Lite #2 offline'])
 	assert.equal(inst.heartbeatCapable[1], true)
 
 	inst.pingCalls.length = 0
@@ -107,7 +107,7 @@ test('a reply marks the Q-Lite online at once and stops pinging it', async (t) =
 	assert.ok(inst.logs.some(([, m]) => /Q-Lite #1 answers the heartbeat/.test(m)))
 })
 
-test('no reply for 6 s -> offline: Warning, then Connection Failure', async (t) => {
+test('no reply for 6 s -> offline: named in the status, then Connection Failure', async (t) => {
 	const inst = await setup(t, 2)
 	await tick(t)
 	await reply(inst, 1)
@@ -123,7 +123,7 @@ test('no reply for 6 s -> offline: Warning, then Connection Failure', async (t) 
 	await tick(t)
 	await reply(inst, 1)
 	assert.equal(inst.getVariableValue('qlite2_online'), false)
-	assert.deepEqual(last(inst), [InstanceStatus.UnknownWarning, 'Q-Lite #2 offline'])
+	assert.deepEqual(last(inst), [InstanceStatus.Ok, 'Q-Lite #2 offline'])
 
 	// Now #1 goes quiet too
 	await tick(t, 4 * HEARTBEAT_INTERVAL)
@@ -134,7 +134,7 @@ test('no reply for 6 s -> offline: Warning, then Connection Failure', async (t) 
 	await tick(t, PING_INTERVAL)
 	assert.deepEqual(inst.pingCalls, [])
 	await reply(inst, 2)
-	assert.deepEqual(last(inst), [InstanceStatus.UnknownWarning, 'Q-Lite #1 offline'])
+	assert.deepEqual(last(inst), [InstanceStatus.Ok, 'Q-Lite #1 offline'])
 })
 
 test('the first reply is adopted: Ready/Go LEDs map to the status', async (t) => {

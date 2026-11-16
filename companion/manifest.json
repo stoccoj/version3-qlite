@@ -3,7 +3,7 @@
 	"name": "Version 3: Q-Lite",
 	"shortname": "qlite",
 	"description": "Control Version 3 Q-Lite cue lights (Ready, Go, Hold, Clear) over OSC",
-	"version": "1.2.1",
+	"version": "1.2.2",
 	"license": "MIT",
 	"repository": "git+https://github.com/stoccoj/version3-qlite.git",
 	"bugs": "https://github.com/stoccoj/version3-qlite/issues",

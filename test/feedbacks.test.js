@@ -84,3 +84,30 @@ test('spot checks', () => {
 	assert.deepEqual(check('ready', { status: 'ready', online: undefined }), style.ready, 'unknown online is not offline')
 	assert.deepEqual(check('go', { status: 'go-confirmed', hold: undefined }), style.go, 'unset hold is not held')
 })
+
+test('offline feedback is true only while the Q-Lite is offline', () => {
+	const offline = (online) => {
+		inst.setVariableValues({ qlite1_online: online })
+		return inst.feedbacks.offline.callback({ options: { number: '1' } })
+	}
+	assert.equal(inst.feedbacks.offline.type, 'boolean')
+	assert.deepEqual(inst.feedbacks.offline.defaultStyle, style.hold)
+	assert.equal(offline(false), true)
+	assert.equal(offline('false'), true)
+	assert.equal(offline(true), false)
+	assert.equal(offline(undefined), false, 'unknown is not offline')
+})
+
+test('the offline feedback is re-checked when a Q-Lite goes offline', () => {
+	inst.setVariableValues({ qlite1_online: true })
+	const checked = []
+	const original = inst.checkFeedbacks
+	inst.checkFeedbacks = (...ids) => checked.push(...ids)
+	try {
+		inst.startPingMonitor(1, '').stop() // no host: marked offline straight away
+	} finally {
+		inst.checkFeedbacks = original
+	}
+	assert.equal(inst.getVariableValue('qlite1_online'), false)
+	assert.ok(checked.includes('offline'), JSON.stringify(checked))
+})

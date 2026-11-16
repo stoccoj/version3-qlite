@@ -5,7 +5,7 @@ Guidance for coding agents working in this repository.
 ## Project
 
 Bitfocus Companion module for Version 3 Q-Lite cue lights, controlled over OSC/UDP. CommonJS, Node ≥ 22,
-`@companion-module/base` 1.x and `osc`. Current version: **1.2.1**. Supports up to 16 Q-Lites per connection.
+`@companion-module/base` 1.x and `osc`. Current version: **1.2.2**. Supports up to 16 Q-Lites per connection.
 
 ## Layout
 
@@ -29,7 +29,9 @@ Bitfocus Companion module for Version 3 Q-Lite cue lights, controlled over OSC/U
 - Feedbacks read the connection's own variables and `checkFeedbacks()` is called explicitly after state changes.
 - State survives config saves. Nothing keeps running after `destroy()` (ping monitors, feedback listener, timers).
 - Connection status rules:
-  - Warning when some Q-Lites are offline (listed by number); Connection Failure when all are offline.
+  - Some Q-Lites offline: status stays OK (or the config status) with them listed by number in the message, because
+    Companion marks every button of a non-OK connection. Connection Failure when all are offline. Per-Q-Lite outages
+    are shown by feedbacks (`ready`, `offline`).
   - Config errors take priority over ping results.
   - Q-Lites with no ping result yet are not counted.
   - The status is only updated when it changes.

@@ -116,7 +116,7 @@ module.exports = {
 			id: 'listen',
 			label: 'Listen for Feedback',
 			width: 4,
-			default: false,
+			default: true,
 			required: true,
 		})
 
@@ -126,6 +126,7 @@ module.exports = {
 			label: 'Feedback Port',
 			width: 4,
 			regex: Regex.PORT,
+			default: '8002',
 			tooltip: "Must match the Q-Lite's CONTROLLER_BUTTON_PORT (default 8002).",
 			isVisible: (options) => options.listen,
 		})
